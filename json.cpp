@@ -6,6 +6,38 @@ using namespace std;
 
 namespace json
 {
+	Value& Value::operator=(Null)
+	{
+		data = null;
+		return *this;
+	}
+
+	Value& Value::operator=(const char* string)
+	{
+		if (string == nullptr)
+			throw invalid_argument("Json value was assigned a nullptr string");
+
+		return *this = std::string(string);
+	}
+
+	Value& Value::operator=(const string& string)
+	{
+		data = string;
+		return *this;
+	}
+
+	Value& Value::operator=(const Array& array)
+	{
+		data = array;
+		return *this;
+	}
+
+	Value& Value::operator=(const Object& object)
+	{
+		data = object;
+		return *this;
+	}
+
 	bool Value::isNull() const { return data.type() == typeid(Null); }
 	bool Value::isBool() const { return data.type() == typeid(bool); }
 	bool Value::isNumber() const { return data.type() == typeid(long double); }
@@ -97,7 +129,7 @@ namespace json
         vector<string> keys;
         for (auto& pair : boost::get<Object>(data))
             keys.emplace_back(pair.first);
-        
+
         return keys;
     }
 

@@ -9,8 +9,8 @@
 
 namespace json
 {
-	//! Generic type for null (there can exist only one!)
-	enum class Null { null };
+	//! Generic null value (there can exist only one!)
+	constexpr enum class Null { } null = {};
 
 	//! Forward declaration for Value (for use with Array and Object)
 	class Value;
@@ -25,6 +25,40 @@ namespace json
 	class Value
 	{
 	public:
+		
+	// Assignment
+
+		//! Assign a null value
+		Value& operator=(Null);
+
+		//! Assign a new boolean value
+		template <class T>
+		std::enable_if_t<std::is_same<T, bool>::value, Value&> operator=(T boolean)
+		{
+			data = boolean;
+			return *this;
+		}
+
+		//! Assign a new number value
+		template <class T>
+		std::enable_if_t<std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, Value&> operator=(T number)
+		{
+			data = static_cast<long double>(number);
+			return *this;
+		}
+
+		//! Assign a new string value
+		/*! @throw std::invalid_argument if string is a nullptr */
+		Value& operator=(const char* string);
+
+		//! Assign a new string value
+		Value& operator=(const std::string& string);
+
+		//! Assign a new array value
+		Value& operator=(const Array& array);
+
+		//! Assign a new object value
+		Value& operator=(const Object& object);
 
 	// Predicates
 
