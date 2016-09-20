@@ -25,7 +25,28 @@ namespace json
 	class Value
 	{
 	public:
-		
+
+	// Construction
+
+		// Note: a lot of these can be templated away with c++17's constructor template parameter inference
+		Value(Null = null); //!< Construct with a null value (default construction)
+		Value(bool boolean); //!< Construct with a boolean value
+		Value(int number); //!< Construct with a number value
+		Value(unsigned int number); //!< Construct with a number value
+		Value(long int number); //!< Construct with a number value
+		Value(long unsigned int number); //!< Construct with a number value
+		Value(long long int number); //!< Construct with a number value
+		Value(long long unsigned int number); //!< Construct with a number value
+		Value(double number); //!< Construct with a number value
+		Value(long double number); //!< Construct with a number value
+		Value(const std::string& string); //!< Construct a string value
+		Value(const Array& array); //!< Construct an array value
+		Value(const Object& object); //!< Construct an object value
+
+		//! Construct a string value
+		/*! @throw std::invalid_argument if the string is a nullptr */
+		Value(const char* string);
+
 	// Assignment
 
 		//! Assign a null value
@@ -69,7 +90,7 @@ namespace json
 		bool isArray() const; //!< Is this value a array?
 		bool isObject() const; //!< Is this value a object?
 
-	// Retrieval
+	// Access
 
 		//! Retrieve the value as a bool
 		/*! @throw std::runtime_error if the value is not a boolean */
@@ -85,6 +106,10 @@ namespace json
 
 		//! Represent the Json value as a variant
 		const auto& asVariant() const { return data; }
+
+		//! Append a value, if this is an array
+        /*! @throw std::runtime_error if json is not an array */
+        void append(const Value& value);
 
 		//! Access an element of the value (as an array)
         /*! @throw std::runtime_error if the value is not an array */

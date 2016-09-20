@@ -6,6 +6,25 @@ using namespace std;
 
 namespace json
 {
+	Value::Value(Null) : data(null) { }
+	Value::Value(bool boolean) : data(boolean) { }
+	Value::Value(int number) : data(static_cast<long double>(number)) { }
+	Value::Value(unsigned int number) : data(static_cast<long double>(number)) { }
+	Value::Value(long int number) : data(static_cast<long double>(number)) { }
+	Value::Value(long unsigned int number) : data(static_cast<long double>(number)) { }
+	Value::Value(long long int number) : data(static_cast<long double>(number)) { }
+	Value::Value(long long unsigned int number) : data(static_cast<long double>(number)) { }
+	Value::Value(double number) : data(static_cast<long double>(number)) { }
+	Value::Value(long double number) : data(number) { }
+	Value::Value(const string& string) : data(string) { }
+	Value::Value(const Array& array) : data(array) { }
+	Value::Value(const Object& object) : data(object) { }
+
+	Value::Value(const char* string)
+	{
+		*this = string;
+	}
+
 	Value& Value::operator=(Null)
 	{
 		data = null;
@@ -68,6 +87,14 @@ namespace json
 
 		return boost::get<string>(data);
 	}
+
+	void Value::append(const Value& value)
+    {
+        if (!isArray())
+            throw runtime_error("Json value is not an array, but tried to call append() on it");
+        
+        boost::get<Array>(data).emplace_back(value);
+    }
 
 	Value& Value::operator[](size_t index)
     {
