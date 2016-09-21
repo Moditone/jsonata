@@ -7,6 +7,8 @@
 
 namespace json
 {
+	//! Parse a Json value from stream
+	/*! @throw std::runtime_error in case of parsing errors */
 	Value parse(std::istream& stream);
 }
 
