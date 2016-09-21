@@ -88,7 +88,7 @@ namespace json
     {
         assert(stream.get() == '[');
         
-        Value value = Array{};
+        Value value = Value::Array{};
         
         while (true)
         {
@@ -116,7 +116,7 @@ namespace json
     {
         assert(stream.get() == '{');
         
-        Value value = Object{};
+        Value value = Value::Object{};
         
         while (true)
         {
@@ -153,7 +153,7 @@ namespace json
             throw runtime_error("Json reached end-of-stream with an empty stream");
         
         if (expect(stream, "null"))
-            return null;
+            return Value::null;
         else if (expect(stream, "false"))
             return false;
         else if (expect(stream, "true"))

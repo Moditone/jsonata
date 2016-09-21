@@ -1,19 +1,18 @@
 #include <stdexcept>
 
-#include "iterator.hpp"
 #include "value.hpp"
 
 using namespace std;
 
 namespace json
 {
-	Accessor::Accessor(const Iterator& iterator) :
+    Value::Accessor::Accessor(const Value::Iterator& iterator) :
 		iterator(iterator.asVariant())
 	{
 
 	}
 
-	const string& Accessor::key()
+	const string& Value::Accessor::key()
 	{
 		if (iterator.type() == typeid(Object::iterator))
 			return boost::get<Object::iterator>(iterator)->first;
@@ -21,7 +20,7 @@ namespace json
 		throw runtime_error("Accessor does not point to an object element, yet key() was called on it");
 	}
 
-	Value& Accessor::value()
+	Value& Value::Accessor::value()
 	{
 		switch (iterator.which())
 		{
@@ -31,19 +30,19 @@ namespace json
 		}
 	}
 
-	Iterator::Iterator(Array::iterator iterator) :
+	Value::Iterator::Iterator(Array::iterator iterator) :
 		iterator(iterator)
 	{
 
 	}
 
-	Iterator::Iterator(Object::iterator iterator) :
+	Value::Iterator::Iterator(Object::iterator iterator) :
 		iterator(iterator)
 	{
 		
 	}
 
-	Iterator& Iterator::operator++()
+	Value::Iterator& Value::Iterator::operator++()
 	{
 		switch (iterator.which())
 		{
@@ -54,7 +53,7 @@ namespace json
 		return *this;
 	}
 
-	Iterator& Iterator::operator++(int)
+	Value::Iterator& Value::Iterator::operator++(int)
 	{
 		switch (iterator.which())
 		{
@@ -65,22 +64,22 @@ namespace json
 		return *this;
 	}
 
-	Accessor Iterator::operator*()
+	Value::Accessor Value::Iterator::operator*()
 	{
 		return {*this};
 	}
 
-	Accessor Iterator::operator->()
+	Value::Accessor Value::Iterator::operator->()
 	{
 		return {*this};
 	}
 
-	bool operator==(const Iterator& lhs, const Iterator& rhs)
+	bool operator==(const Value::Iterator& lhs, const Value::Iterator& rhs)
 	{
 		return lhs.asVariant() == rhs.asVariant();
 	}
 
-	bool operator!=(const Iterator& lhs, const Iterator& rhs)
+	bool operator!=(const Value::Iterator& lhs, const Value::Iterator& rhs)
 	{
 		return !(lhs == rhs);	
 	}

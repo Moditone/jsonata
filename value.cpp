@@ -6,6 +6,8 @@ using namespace std;
 
 namespace json
 {
+    constexpr Value::Null Value::null;
+    
 	Value::Value(Null) : data(null) { }
 	Value::Value(bool boolean) : data(boolean) { }
 	Value::Value(int number) : data(static_cast<long double>(number)) { }
@@ -160,7 +162,7 @@ namespace json
         return keys;
     }
 
-    Iterator Value::begin()
+    Value::Iterator Value::begin()
     {
     	if (isArray())
             return boost::get<Array>(data).begin();
@@ -170,7 +172,7 @@ namespace json
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
 
-    Iterator Value::end()
+    Value::Iterator Value::end()
     {
     	if (isArray())
             return boost::get<Array>(data).end();
