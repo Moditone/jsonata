@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "json.hpp"
+#include "value.hpp"
 
 using namespace std;
 
@@ -158,6 +158,26 @@ namespace json
             keys.emplace_back(pair.first);
 
         return keys;
+    }
+
+    Iterator Value::begin()
+    {
+    	if (isArray())
+            return boost::get<Array>(data).begin();
+        else if (isObject())
+            return boost::get<Object>(data).begin();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
+    }
+
+    Iterator Value::end()
+    {
+    	if (isArray())
+            return boost::get<Array>(data).end();
+        else if (isObject())
+            return boost::get<Object>(data).end();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
 
 	bool operator==(const Value& lhs, const Value& rhs)

@@ -1,5 +1,5 @@
-#ifndef JSON_HPP
-#define JSON_HPP
+#ifndef JSON_VALUE_HPP
+#define JSON_VALUE_HPP
 
 #include <boost/variant.hpp>
 #include <cstddef>
@@ -7,19 +7,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include "array.hpp"
+#include "iterator.hpp"
+#include "object.hpp"
+
 namespace json
 {
 	//! Generic null value (there can exist only one!)
 	constexpr enum class Null { } null = {};
-
-	//! Forward declaration for Value (for use with Array and Object)
-	class Value;
-
-	//! Convenience alias for Json arrays
-	using Array = std::vector<Value>;
-
-	//! Convenience alias for Json objects
-	using Object = std::unordered_map<std::string, Value>;
 
 	//! A json value
 	class Value
@@ -139,6 +134,11 @@ namespace json
         /*! @throw std:runtime_error if the value is not an object */
         std::vector<std::string> keys() const;
 
+    // Ranged for-loops
+
+        Iterator begin();
+        Iterator end();
+
 	private:
 		//! Contains the actual data for this Json value
 		boost::variant<Null, bool, long double, std::string, Array, Object> data;
@@ -151,4 +151,4 @@ namespace json
 	bool operator!=(const Value& lhs, const Value& rhs);
 }
 
-#endif // JSON_HPP
+#endif
