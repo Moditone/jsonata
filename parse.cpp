@@ -170,4 +170,10 @@ namespace json
         
         throw runtime_error("Json found unsupported character '" + string(1, stream.peek()) + "'");
 	}
+    
+    istream& operator>>(istream& stream, Value& value)
+    {
+        value = parse(stream);
+        return stream;
+    }
 }

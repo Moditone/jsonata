@@ -187,7 +187,6 @@ namespace json
 		return lhs.asVariant() == rhs.asVariant();
 	}
 
-	//! Compare two values for inequality
 	bool operator!=(const Value& lhs, const Value& rhs)
 	{
 		return !(lhs == rhs);

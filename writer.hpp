@@ -14,6 +14,9 @@ namespace json
     	//! Construct the writer with a value
         Writer(const Value& value);
         
+        //! Output the writer to stream
+        void writeToStream(std::ostream& stream) const;
+        
     public:
     	//! The value that will be written to output
         Value value;

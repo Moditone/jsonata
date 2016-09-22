@@ -6,13 +6,7 @@
 using namespace std;
 
 namespace json
-{    
-    Writer::Writer(const Value& value) :
-        value(value)
-    {
-        
-    }
-
+{
     void writeString(ostream& stream, const string& string)
     {
         stream << '\"';
@@ -29,46 +23,55 @@ namespace json
         stream << '\"';
     }
     
-    ostream& operator<<(ostream& stream, const Writer& writer)
+    Writer::Writer(const Value& value) :
+        value(value)
     {
-        if (writer.value.isNull())
-            return stream << "null";
-        else if (writer.value.isBool())
-            return stream << (writer.value.asBool() ? "true" : "false");
-        else if (writer.value.isNumber())
-            return stream << writer.value.asNumber();
-        else if (writer.value.isString())
+        
+    }
+    
+    void Writer::writeToStream(ostream& stream) const
+    {
+        if (value.isNull())
+            stream << "null";
+        else if (value.isBool())
+            stream << (value.asBool() ? "true" : "false");
+        else if (value.isNumber())
+            stream << value.asNumber();
+        else if (value.isString())
         {
-            writeString(stream, writer.value.asString());
-            return stream;
-        } else if (writer.value.isArray()) {
+            writeString(stream, value.asString());
+        } else if (value.isArray()) {
             stream << '[';
             
-            const auto size = writer.value.size();
+            const auto size = value.size();
             for (auto i = 0; i < size; ++i)
             {
-                stream << writer.value[i];
+                stream << value[i];
                 if (i != size - 1)
                     stream << ',';
             }
             
-            return stream << ']';
-        } else if (writer.value.isObject()) {
+            stream << ']';
+        } else if (value.isObject()) {
             stream << '{';
             
-            const auto size = writer.value.size();
-            const auto keys = writer.value.keys();
+            const auto size = value.size();
+            const auto keys = value.keys();
             for (auto i = 0; i < size; ++i)
             {
                 writeString(stream, keys[i]);
-                stream << ":" << writer.value[keys[i]];;
+                stream << ":" << value[keys[i]];;
                 if (i != size - 1)
                     stream << ',';
             }
             
-            return stream << '}';
+            stream << '}';
         }
-        
-        assert(false);
+    }
+    
+    ostream& operator<<(ostream& stream, const Writer& writer)
+    {
+        writer.writeToStream(stream);
+        return stream;
     }
 }
