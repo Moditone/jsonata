@@ -164,11 +164,11 @@ namespace json
 		const auto& asVariant() const { return data; }
 
 		//! Append a value, if this is an array
-        /*! @throw std::runtime_error if json is not an array */
+        /*! Changes the value into an array if it wasn't */
         void append(const Value& value);
 
 		//! Access an element of the value as array
-        /*! @throw std::runtime_error if the value is not an array */
+        /*! Changes the value into an array if it wasn't */
         Value& operator[](std::size_t index);
         
         //! Access an element of the value as array, read-only
@@ -179,7 +179,7 @@ namespace json
         Value access(const std::size_t& index, const Value& alternative) const;
         
         //! Access an element of the value as object
-        /*! @throw std::runtime_error if the value is not an object */
+        /*! Changes the value into an object if it wasn't */
         Value& operator[](const std::string& key);
         
         //! Access an element of the value as object, read-only

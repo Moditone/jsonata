@@ -105,7 +105,7 @@ namespace json
 	void Value::append(const Value& value)
     {
         if (!isArray())
-            throw runtime_error("Json value is not an array, but tried to call append() on it");
+            *this = array;
         
         boost::get<Array>(data).emplace_back(value);
     }
@@ -113,7 +113,7 @@ namespace json
 	Value& Value::operator[](size_t index)
     {
         if (!isArray())
-            throw runtime_error("Json value is not an array, but tried to call operator[]() on it");
+            *this = array;
         
         return boost::get<Array>(data).at(index);
     }
@@ -137,7 +137,7 @@ namespace json
     Value& Value::operator[](const string& key)
     {
         if (!isObject())
-            throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
+            *this = object;
         
         return boost::get<Object>(data)[key];
     }

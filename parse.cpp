@@ -96,7 +96,10 @@ namespace json
             // Make sure we eject in case of an empty array
             skipWhitespaceAndCheckEof(stream, ']');
             if (stream.peek() == ']')
+            {
+                stream.ignore();
                 return value;
+            }
             
             // Append the array
             value.append(parse(stream));
@@ -124,7 +127,10 @@ namespace json
             // Make sure we eject in case of an empty object
             skipWhitespaceAndCheckEof(stream, '}');
             if (stream.peek() == '}')
+            {
+                stream.ignore();
                 return value;
+            }
             
             // Read the key
             const auto key = parseString(stream);
