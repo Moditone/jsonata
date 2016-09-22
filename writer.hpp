@@ -2,27 +2,54 @@
 #define JSON_WRITER_HPP
 
 #include <ostream>
+#include <string>
 
 #include "Value.hpp"
 
 namespace json
 {
-	//! Json writer settings, streamable to output
-	class Writer
+    //! Json writer, streamable to output
+    class Writer
     {
     public:
-    	//! Construct the writer with a value
-        Writer(const Value& value);
+        //! Settings the json writer uses to format its output
+        class Format
+        {
+        public:
+            //! Write a Json value to stream
+            /*! Virtual, so that derivatives can implement their own formatting */
+            virtual void write(std::ostream& stream, const Value& value) const;
+            
+        private:
+            //! Write a Json string to stream
+            void write(std::ostream& stream, const std::string& string) const;
+        };
         
-        //! Output the writer to stream
-        void writeToStream(std::ostream& stream) const;
+        //! Default pretty formatting settings that come with libjsonata
+        class PrettyFormat;
         
     public:
-    	//! The value that will be written to output
-        Value value;
+        //! Construct the writer by passing a value and format
+        /*! @warning The value and format should outlive the Writer */
+        Writer(const Value& value, const Format& format = {});
+        
+    public:
+        //! The value that will be outputted
+        const Value& value;
+        
+        //! The format that is used for outputting
+        const Format& format;
     };
     
-    //! Stream a json writer with settings to an output stream
+    //! Pretty settings for Json formatting
+    class Writer::PrettyFormat : public Writer::Format
+    {
+    public:
+        //! Write a Json value to stream using pretty formatting
+        void write(std::ostream& stream, const Value& value) const override;
+    };
+    
+    //! Stream a json writer with formatting to an output stream
     std::ostream& operator<<(std::ostream& stream, const Writer& writer);
 }
 
