@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdexcept>
 
 #include "value.hpp"
@@ -65,6 +66,15 @@ namespace json
 	bool Value::isString() const { return data.type() == typeid(string); }
 	bool Value::isArray() const { return data.type() == typeid(Array); }
 	bool Value::isObject() const { return data.type() == typeid(Object); }
+    
+    bool Value::isInteger() const
+    {
+        if (!isNumber())
+            return false;
+        
+        long double integer;
+        return modf(asNumber(), &integer) == 0.0;
+    }
 
 	bool Value::asBool() const
 	{

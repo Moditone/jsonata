@@ -141,6 +141,7 @@ namespace json
 		bool isNull() const; //!< Is this value a null?
 		bool isBool() const; //!< Is this value a boolean?
 		bool isNumber() const; //!< Is this value a number?
+        bool isInteger() const; //!< Is this value an integer number?
 		bool isString() const; //!< Is this value a string?
 		bool isArray() const; //!< Is this value a array?
 		bool isObject() const; //!< Is this value a object?
