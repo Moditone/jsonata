@@ -1,4 +1,5 @@
 #include <cassert>
+#include <sstream>
 #include <string>
 
 #include "writer.hpp"
@@ -7,14 +8,14 @@ using namespace std;
 
 namespace json
 {
-    Writer::Writer(const Value& value, const Format& format) :
-        value(value),
-        format(format)
+    string Writer::writeToString(const Value& value) const
     {
-        
+        stringstream stream;
+        writeToStream(stream, value);
+        return stream.str();
     }
     
-    void Writer::Format::write(ostream& stream, const Value& value) const
+    void LeanWriter::writeToStream(ostream& stream, const Value& value) const
     {
         if (value.isNull())
             stream << "null";
@@ -31,7 +32,7 @@ namespace json
             const auto size = value.size();
             for (auto i = 0; i < size; ++i)
             {
-                write(stream, value[i]);
+                writeToStream(stream, value[i]);
                 if (i != size - 1)
                     stream << ',';
             }
@@ -46,7 +47,7 @@ namespace json
             {
                 write(stream, keys[i]);
                 stream << ":";
-                write(stream, value[keys[i]]);
+                writeToStream(stream, value[keys[i]]);
                 
                 if (i != size - 1)
                     stream << ',';
@@ -56,7 +57,7 @@ namespace json
         }
     }
     
-    void Writer::Format::write(ostream& stream, const string& string) const
+    void LeanWriter::write(ostream& stream, const string& string) const
     {
         stream << '\"';
         for (auto& c : string)
@@ -72,14 +73,21 @@ namespace json
         stream << '\"';
     }
     
-    void Writer::PrettyFormat::write(ostream& stream, const Value& value) const
+    void PrettyWriter::writeToStream(ostream& stream, const Value& value) const
     {
-        return Format::write(stream, value);
+        return LeanWriter::writeToStream(stream, value);
     }
     
-    ostream& operator<<(ostream& stream, const Writer& writer)
+    Streamer::Streamer(const Value& value, const Writer& writer) :
+        value(value),
+        writer(writer)
     {
-        writer.format.write(stream, writer.value);
+        
+    }
+    
+    ostream& operator<<(ostream& stream, const Streamer& streamer)
+    {
+        streamer.writer.writeToStream(stream, streamer.value);
         return stream;
     }
 }
