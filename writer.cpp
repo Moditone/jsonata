@@ -10,7 +10,7 @@ namespace json
 {
     string Writer::writeToString(const Value& value) const
     {
-        stringstream stream;
+        ostringstream stream;
         writeToStream(stream, value);
         return stream.str();
     }

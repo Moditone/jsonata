@@ -1,5 +1,6 @@
 #include <cassert>
 #include <codecvt>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -170,6 +171,12 @@ namespace json
         
         throw runtime_error("Json found unsupported character '" + string(1, stream.peek()) + "'");
 	}
+    
+    Value parse(const string& text)
+    {
+        istringstream stream(text);
+        return parse(stream);
+    }
     
     istream& operator>>(istream& stream, Value& value)
     {
