@@ -124,6 +124,14 @@ namespace json
         return boost::get<Array>(data).at(index);
     }
     
+    Value Value::access(const size_t& index, const Value& alternative) const
+    {
+        if (index >= size())
+            return alternative;
+        
+        return (*this)[index];
+    }
+    
     Value& Value::operator[](const string& key)
     {
         if (!isObject())
@@ -138,6 +146,14 @@ namespace json
             throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
         
         return boost::get<Object>(data).at(key);
+    }
+    
+    Value Value::access(const string& key, const Value& alternative) const
+    {
+        if (!hasKey(key))
+            return alternative;
+        
+        return (*this)[key];
     }
 
 	size_t Value::size() const

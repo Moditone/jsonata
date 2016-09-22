@@ -167,21 +167,27 @@ namespace json
         /*! @throw std::runtime_error if json is not an array */
         void append(const Value& value);
 
-		//! Access an element of the value (as an array)
+		//! Access an element of the value as array
         /*! @throw std::runtime_error if the value is not an array */
         Value& operator[](std::size_t index);
         
-        //! Access an element of the value (as an array), read-only
+        //! Access an element of the value as array, read-only
         /*! @throw std::runtime_error if the value is not an array */
         const Value& operator[](std::size_t index) const;
         
-        //! Access a key/value pair of the value (as an object)
+        //! Access an element of the value as object, or return an alternative if the index wasn't found
+        Value access(const std::size_t& index, const Value& alternative) const;
+        
+        //! Access an element of the value as object
         /*! @throw std::runtime_error if the value is not an object */
         Value& operator[](const std::string& key);
         
-        //! Access a key/value pair of the value (as an object), read-only
+        //! Access an element of the value as object, read-only
         /*! @throw std::runtime_error if the value is not an object */
         const Value& operator[](const std::string& key) const;
+        
+        //! Access an element of the value as object, or return an alternative if the key wasn't found
+        Value access(const std::string& key, const Value& alternative) const;
 
 		//! Return the size of the value (as an array or object)
 		/*! @throw std::runtime_error if the value is neither array nor object */
