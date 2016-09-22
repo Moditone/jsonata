@@ -161,6 +161,14 @@ namespace json
 
         return keys;
     }
+    
+    bool Value::hasKey(const string& key) const
+    {
+        if (!isObject())
+            return false;
+        
+        return boost::get<Object>(data).count(key) > 0;
+    }
 
     Value::Iterator Value::begin()
     {

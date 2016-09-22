@@ -191,8 +191,12 @@ namespace json
 		bool empty() const;
 
 		//! Retrieve a list of all the keys of the value (as an object)
-        /*! @throw std:runtime_error if the value is not an object */
+        /*! @throw std::runtime_error if the value is not an object */
         std::vector<std::string> keys() const;
+        
+        //! Does the value have an object key?
+        /*! @return false if the value is not an object to begin with */
+        bool hasKey(const std::string& key) const;
 
     // Ranged for-loops
 
