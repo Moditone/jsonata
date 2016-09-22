@@ -7,9 +7,11 @@ using namespace std;
 
 namespace json
 {
-    constexpr Value::Null Value::null;
+    const Value Value::null = Value::Null{};
+    const Value Value::array = Value::Array{};
+    const Value Value::object = Value::Object{};
     
-	Value::Value(Null) : data(null) { }
+    Value::Value(Null) : data(Null{}) { }
 	Value::Value(bool boolean) : data(boolean) { }
 	Value::Value(int number) : data(static_cast<long double>(number)) { }
 	Value::Value(unsigned int number) : data(static_cast<long double>(number)) { }
@@ -30,7 +32,7 @@ namespace json
 
 	Value& Value::operator=(Null)
 	{
-		data = null;
+        data = Null{};
 		return *this;
 	}
 

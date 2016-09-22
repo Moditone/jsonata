@@ -13,8 +13,8 @@ namespace json
 	class Value
 	{
     public:
-        //! Generic null value (there can exist only one!)
-        static constexpr enum class Null { } null = {};
+        //! Generic null value type
+        enum class Null;
         
         //! Convenience alias for Json arrays
         using Array = std::vector<Value>;
@@ -28,7 +28,7 @@ namespace json
         /*! This class is used as the pointee of json iterators */
         class Accessor
         {
-            public:
+        public:
             //! Construct the accessor from an iterator
             Accessor(const Iterator& iterator);
             
@@ -44,7 +44,7 @@ namespace json
              In other words it->value() = (it.operator->())->value() */
             Accessor* operator->() { return this; }
             
-            private:
+        private:
             //! The iterator pointing to the element data
             boost::variant<Array::iterator, Object::iterator> iterator;
         };
@@ -52,7 +52,7 @@ namespace json
         //! Iterator over a Json value
         class Iterator
         {
-            public:
+        public:
             //! Construct the iterator from an array iterator
             Iterator(Array::iterator iterator);
             
@@ -74,7 +74,7 @@ namespace json
             //! Return the iterator as a variant
             const auto& asVariant() const { return iterator; }
             
-            private:
+        private:
             //! Variant containing the actual iterator
             boost::variant<Array::iterator, Object::iterator> iterator;
         };
@@ -84,7 +84,7 @@ namespace json
 	// Construction
 
 		// Note: a lot of these can be templated away with c++17's constructor template parameter inference
-		Value(Null = null); //!< Construct with a null value (default construction)
+        Value(Null = {}); //!< Construct with a null value (default construction)
 		Value(bool boolean); //!< Construct with a boolean value
 		Value(int number); //!< Construct with a number value
 		Value(unsigned int number); //!< Construct with a number value
@@ -209,6 +209,16 @@ namespace json
 
         Iterator begin();
         Iterator end();
+        
+    public:
+        //! Null value (there can exist only one!)
+        static const Value null;
+        
+        //! Generic empty array
+        static const Value array;
+        
+        //! Generic empty object
+        static const Value object;
 
 	private:
 		//! Contains the actual data for this Json value

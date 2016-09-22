@@ -89,7 +89,7 @@ namespace json
     {
         assert(stream.get() == '[');
         
-        Value value = Value::Array{};
+        auto value = Value::array;
         
         while (true)
         {
@@ -117,7 +117,7 @@ namespace json
     {
         assert(stream.get() == '{');
         
-        Value value = Value::Object{};
+        auto value = Value::object;
         
         while (true)
         {
