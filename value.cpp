@@ -115,6 +115,9 @@ namespace json
         if (!isArray())
             *this = array;
         
+        if (index >= size())
+            throw runtime_error("Json array value, index " + to_string(index) + " out of bounds");
+        
         return boost::get<Array>(data).at(index);
     }
     
@@ -122,6 +125,9 @@ namespace json
     {
         if (!isArray())
             throw runtime_error("Json value is not an array, but tried to call operator[]() on it");
+        
+        if (index >= size())
+            throw runtime_error("Json array, index " + to_string(index) + " out of bounds");
         
         return boost::get<Array>(data).at(index);
     }
@@ -147,7 +153,12 @@ namespace json
         if (!isObject())
             throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
         
-        return boost::get<Object>(data).at(key);
+        auto& object = boost::get<Object>(data);
+        auto it = object.find(key);
+        if (it == object.end())
+            throw runtime_error("Json object, key '" + key + "' not found");
+        
+        return it->second;
     }
     
     Value Value::access(const string& key, const Value& alternative) const
