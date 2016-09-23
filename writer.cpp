@@ -21,8 +21,12 @@ namespace json
             stream << "null";
         else if (value.isBool())
             stream << (value.asBool() ? "true" : "false");
-        else if (value.isNumber())
-            stream << value.asNumber();
+        else if (value.isSignedInteger())
+            stream << value.asSignedInteger();
+        else if (value.isUnsignedInteger())
+            stream << value.asUnsignedInteger();
+        else if (value.isReal())
+            stream << fixed << value.asReal();
         else if (value.isString())
         {
             write(stream, value.asString());

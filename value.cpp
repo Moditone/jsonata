@@ -13,14 +13,16 @@ namespace json
     
     Value::Value(Null) : data(Null{}) { }
 	Value::Value(bool boolean) : data(boolean) { }
-	Value::Value(int number) : data(static_cast<long double>(number)) { }
-	Value::Value(unsigned int number) : data(static_cast<long double>(number)) { }
-	Value::Value(long int number) : data(static_cast<long double>(number)) { }
-	Value::Value(long unsigned int number) : data(static_cast<long double>(number)) { }
-	Value::Value(long long int number) : data(static_cast<long double>(number)) { }
-	Value::Value(long long unsigned int number) : data(static_cast<long double>(number)) { }
-	Value::Value(double number) : data(static_cast<long double>(number)) { }
-	Value::Value(long double number) : data(number) { }
+    Value::Value(short int number) { *this = number; }
+    Value::Value(unsigned short int number) { *this = number; }
+	Value::Value(int number) { *this = number; }
+	Value::Value(unsigned int number) { *this = number; }
+	Value::Value(long int number) { *this = number; }
+	Value::Value(long unsigned int number) { *this = number; }
+	Value::Value(long long int number) { *this = number; }
+	Value::Value(long long unsigned int number) { *this = number; }
+	Value::Value(double number) { *this = number; }
+    Value::Value(long double number) { *this = number; }
 	Value::Value(const string& string) : data(string) { }
 	Value::Value(const Array& array) : data(array) { }
 	Value::Value(const Object& object) : data(object) { }
@@ -64,19 +66,14 @@ namespace json
 
 	bool Value::isNull() const { return data.type() == typeid(Null); }
 	bool Value::isBool() const { return data.type() == typeid(bool); }
-	bool Value::isNumber() const { return data.type() == typeid(long double); }
+    bool Value::isNumber() const { return isInteger() || isReal(); }
+    bool Value::isInteger() const { return isSignedInteger() || isUnsignedInteger(); }
+    bool Value::isSignedInteger() const { return data.type() == typeid(int64_t); }
+    bool Value::isUnsignedInteger() const { return data.type() == typeid(uint64_t); }
+    bool Value::isReal() const { return data.type() == typeid(long double); }
 	bool Value::isString() const { return data.type() == typeid(string); }
 	bool Value::isArray() const { return data.type() == typeid(Array); }
 	bool Value::isObject() const { return data.type() == typeid(Object); }
-    
-    bool Value::isInteger() const
-    {
-        if (!isNumber())
-            return false;
-        
-        long double integer;
-        return modf(asNumber(), &integer) == 0.0;
-    }
 
 	bool Value::asBool() const
 	{
@@ -85,13 +82,38 @@ namespace json
 
 		return boost::get<bool>(data);
 	}
+    
+    int64_t Value::asSignedInteger() const
+    {
+        switch (data.which())
+        {
+            case 2: return boost::get<int64_t>(data);
+            case 3: return boost::get<uint64_t>(data);
+            case 4: return boost::get<long double>(data);
+            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+        }
+    }
+    
+    uint64_t Value::asUnsignedInteger() const
+    {
+        switch (data.which())
+        {
+            case 2: return boost::get<int64_t>(data);
+            case 3: return boost::get<uint64_t>(data);
+            case 4: return boost::get<long double>(data);
+            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+        }
+    }
 
-	long double Value::asNumber() const
+	long double Value::asReal() const
 	{
-		if (!isNumber())
-			throw runtime_error("Json value is no boolean, yet asNumber() was called on it");
-
-		return boost::get<long double>(data);
+        switch (data.which())
+        {
+            case 2: return boost::get<int64_t>(data);
+            case 3: return boost::get<uint64_t>(data);
+            case 4: return boost::get<long double>(data);
+            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+        }
 	}
 
 	const string& Value::asString() const

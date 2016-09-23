@@ -36,13 +36,27 @@ namespace json
         return false;
     }
     
-    long double parseNumber(istream& stream)
+    Value parseNumber(istream& stream)
     {
-        assert(stream.peek() == '-' || isdigit(stream.peek()));
+        bool negative = false;
+        string token;
+        if (stream.peek() == '-')
+        {
+            negative = true;
+            token += stream.get();
+        }
         
-        long double number;
-        stream >> number;
-        return number;
+        while (isdigit(stream.peek()))
+           token += stream.get();
+        
+        if (stream.peek() != '.')
+            return negative ? Value(stoll(token)) : Value(stoull(token));
+        
+        token += stream.get();
+        while (isdigit(stream.peek()))
+            token += stream.get();
+        
+        return stold(token);
     }
     
     string parseString(istream& stream)

@@ -3,6 +3,7 @@
 
 #include <boost/variant.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -86,7 +87,9 @@ namespace json
 		// Note: a lot of these can be templated away with c++17's constructor template parameter inference
         Value(Null = {}); //!< Construct with a null value (default construction)
 		Value(bool boolean); //!< Construct with a boolean value
-		Value(int number); //!< Construct with a number value
+        Value(short int number); //!< Construct with a number value
+		Value(unsigned short int number); //!< Construct with a number value
+        Value(int number); //!< Construct with a number value
 		Value(unsigned int number); //!< Construct with a number value
 		Value(long int number); //!< Construct with a number value
 		Value(long unsigned int number); //!< Construct with a number value
@@ -117,11 +120,34 @@ namespace json
 
 		//! Assign a new number value
 		template <class T>
-		std::enable_if_t<std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, Value&> operator=(T number)
+		std::enable_if_t<std::is_integral<T>::value &&
+                         std::is_signed<T>::value &&
+                        !std::is_same<T, bool>::value, Value&>
+        operator=(T number)
 		{
-			data = static_cast<long double>(number);
+			data = static_cast<int64_t>(number);
 			return *this;
 		}
+        
+        //! Assign a new number value
+        template <class T>
+        std::enable_if_t<std::is_integral<T>::value &&
+                         std::is_unsigned<T>::value &&
+                        !std::is_same<T, bool>::value, Value&>
+        operator=(T number)
+        {
+            data = static_cast<uint64_t>(number);
+            return *this;
+        }
+        
+        //! Assign a new number value
+        template <class T>
+        std::enable_if_t<std::is_floating_point<T>::value, Value&>
+        operator=(T number)
+        {
+            data = static_cast<long double>(number);
+            return *this;
+        }
 
 		//! Assign a new string value
 		/*! @throw std::invalid_argument if string is a nullptr */
@@ -142,6 +168,9 @@ namespace json
 		bool isBool() const; //!< Is this value a boolean?
 		bool isNumber() const; //!< Is this value a number?
         bool isInteger() const; //!< Is this value an integer number?
+        bool isSignedInteger() const; //!< Is this value a signed integer number?
+        bool isUnsignedInteger() const; //!< Is this value an unsigned integer number?
+        bool isReal() const; //!< Is this value a real number?
 		bool isString() const; //!< Is this value a string?
 		bool isArray() const; //!< Is this value a array?
 		bool isObject() const; //!< Is this value a object?
@@ -151,10 +180,18 @@ namespace json
 		//! Retrieve the value as a bool
 		/*! @throw std::runtime_error if the value is not a boolean */
 		bool asBool() const;
+        
+        //! Retrieve the value as a signed integer
+        /*! @throw std::runtime_error if the value is not a number */
+        int64_t asSignedInteger() const;
+        
+        //! Retrieve the value as an unsigned number
+        /*! @throw std::runtime_error if the value is not a number */
+        uint64_t asUnsignedInteger() const;
 
-		//! Retrieve the value as a number
+		//! Retrieve the value as a real number
 		/*! @throw std::runtime_error if the value is not a number */
-		long double asNumber() const;
+		long double asReal() const;
 
 		//! Retrieve the value as a string
 		/*! @throw std::runtime_error if the value is not a string */
@@ -222,7 +259,7 @@ namespace json
 
 	private:
 		//! Contains the actual data for this Json value
-		boost::variant<Null, bool, long double, std::string, Array, Object> data;
+		boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, Array, Object> data;
 	};
 
 	//! Compare two values for equality
