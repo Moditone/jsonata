@@ -24,6 +24,7 @@ namespace json
         using Object = std::unordered_map<std::string, Value>;
         
         class Iterator;
+        class ConstIterator;
         
         //! Represents an element in a Json array or object
         /*! This class is used as the pointee of json iterators */
@@ -45,9 +46,44 @@ namespace json
              In other words it->value() = (it.operator->())->value() */
             Accessor* operator->() { return this; }
             
+            //! Return this, so that Iterator::operator->() can chain onto this operator
+            /*! This is necessary, because operator->() will keep on chaining until it finds a pointer.
+                In other words it->value() = (it.operator->())->value() */
+            const Accessor* operator->() const { return this; }
+            
         private:
             //! The iterator pointing to the element data
             boost::variant<Array::iterator, Object::iterator> iterator;
+        };
+        
+        //! Represents an element in a Json array or object
+        /*! This class is used as the pointee of json iterators */
+        class ConstAccessor
+        {
+        public:
+            //! Construct the accessor from an iterator
+            ConstAccessor(const ConstIterator& iterator);
+            
+            //! Return the key of an object key/value pair
+            /*! @throw std::runtime_error if the accessor does not point to an object element */
+            const std::string& key();
+            
+            //! Return the array element, or value of object key/value pair this accessor points to
+            const Value& value();
+            
+            //! Return this, so that Iterator::operator->() can chain onto this operator
+            /*! This is necessary, because operator->() will keep on chaining until it finds a pointer.
+             In other words it->value() = (it.operator->())->value() */
+            ConstAccessor* operator->() { return this; }
+            
+            //! Return this, so that Iterator::operator->() can chain onto this operator
+            /*! This is necessary, because operator->() will keep on chaining until it finds a pointer.
+             In other words it->value() = (it.operator->())->value() */
+            const ConstAccessor* operator->() const { return this; }
+            
+        private:
+            //! The iterator pointing to the element data
+            boost::variant<Array::const_iterator, Object::const_iterator> iterator;
         };
         
         //! Iterator over a Json value
@@ -78,6 +114,36 @@ namespace json
         private:
             //! Variant containing the actual iterator
             boost::variant<Array::iterator, Object::iterator> iterator;
+        };
+        
+        //! Iterator over a Json value
+        class ConstIterator
+        {
+        public:
+            //! Construct the iterator from an array iterator
+            ConstIterator(Array::const_iterator iterator);
+            
+            //! Construct the iterator from an object iterator
+            ConstIterator(Object::const_iterator iterator);
+            
+            //! Increment the iterator
+            ConstIterator& operator++();
+            
+            //! Increment the iterator
+            ConstIterator& operator++(int);
+            
+            //! Dereference the iterator
+            ConstAccessor operator*();
+            
+            //! Dereference the iterator
+            ConstAccessor operator->();
+            
+            //! Return the iterator as a variant
+            const auto& asVariant() const { return iterator; }
+            
+        private:
+            //! Variant containing the actual iterator
+            boost::variant<Array::const_iterator, Object::const_iterator> iterator;
         };
         
 	public:
@@ -245,7 +311,12 @@ namespace json
     // Ranged for-loops
 
         Iterator begin();
+        ConstIterator begin() const;
+        ConstIterator cbegin() const;
+        
         Iterator end();
+        ConstIterator end() const;
+        ConstIterator cend() const;
         
     public:
         //! Null value (there can exist only one!)
@@ -273,6 +344,12 @@ namespace json
     
     //! Compare two iterators for inequality
     bool operator!=(const Value::Iterator& lhs, const Value::Iterator& rhs);
+    
+    //! Compare two const iterators for equality
+    bool operator==(const Value::ConstIterator& lhs, const Value::ConstIterator& rhs);
+    
+    //! Compare two const iterators for inequality
+    bool operator!=(const Value::ConstIterator& lhs, const Value::ConstIterator& rhs);
 }
 
 #endif

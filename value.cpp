@@ -240,10 +240,50 @@ namespace json
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
+    
+    Value::ConstIterator Value::begin() const
+    {
+        if (isArray())
+            return boost::get<Array>(data).begin();
+        else if (isObject())
+            return boost::get<Object>(data).begin();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
+    }
+    
+    Value::ConstIterator Value::cbegin() const
+    {
+        if (isArray())
+            return boost::get<Array>(data).begin();
+        else if (isObject())
+            return boost::get<Object>(data).begin();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
+    }
 
     Value::Iterator Value::end()
     {
     	if (isArray())
+            return boost::get<Array>(data).end();
+        else if (isObject())
+            return boost::get<Object>(data).end();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
+    }
+    
+    Value::ConstIterator Value::end() const
+    {
+        if (isArray())
+            return boost::get<Array>(data).end();
+        else if (isObject())
+            return boost::get<Object>(data).end();
+        else
+            throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
+    }
+    
+    Value::ConstIterator Value::cend() const
+    {
+        if (isArray())
             return boost::get<Array>(data).end();
         else if (isObject())
             return boost::get<Object>(data).end();

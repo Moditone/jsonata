@@ -6,6 +6,7 @@ add_definitions(-std=c++1z -Wall)
 include_directories(/usr/local/include)
 
 add_library(jsonata SHARED
+    accessor.cpp
     iterator.cpp
     json.hpp
     parse.hpp parse.cpp
