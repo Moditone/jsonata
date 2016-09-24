@@ -30,7 +30,7 @@ namespace json
         //! Write a Json value to stream, lean and efficient
         void writeToStream(std::ostream& stream, const Value& value) const override;
         
-    private:
+    protected:
         //! Write a Json string to stream
         void write(std::ostream& stream, const std::string& string) const;
     };
@@ -41,6 +41,13 @@ namespace json
     public:
         //! Write a Json value to stream using pretty formatting
         void writeToStream(std::ostream& stream, const Value& value) const override;
+        
+    private:
+        //! Write a Json value to stream using indentation
+        void writeToStreamWithIndentation(std::ostream& stream, const Value& value, unsigned int indentation) const;
+        
+        //! Output a number of whitespaces for indentation
+        void writeIndentation(std::ostream& stream, unsigned int indentation) const;
     };
     
     //! Streams Json through a writer to an output stream
@@ -60,7 +67,10 @@ namespace json
     };
     
     //! Stream a json Streamer to an output stream
-    std::ostream& operator<<(std::ostream& stream, const Streamer& writer);
+    std::ostream& operator<<(std::ostream& stream, const Streamer& streamer);
+    
+    //! Stream a json value to an output stream
+    std::ostream& operator<<(std::ostream& stream, const Value& value);
 }
 
 #endif
