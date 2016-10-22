@@ -340,10 +340,10 @@ namespace json
         static const Value null;
         
         //! Generic empty array
-        static const Value array;
+        static const Value emptyArray;
         
         //! Generic empty object
-        static const Value object;
+        static const Value emptyObject;
 
 	private:
 		//! Contains the actual data for this Json value

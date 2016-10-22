@@ -17,8 +17,8 @@ using namespace std;
 namespace json
 {
     const Value Value::null = Value::Null{};
-    const Value Value::array = Value::Array{};
-    const Value Value::object = Value::Object{};
+    const Value Value::emptyArray = Value::Array{};
+    const Value Value::emptyObject = Value::Object{};
     
     Value::Value(Null) : data(Null{}) { }
 	Value::Value(bool boolean) : data(boolean) { }
@@ -152,7 +152,7 @@ namespace json
 	void Value::append(const Value& value)
     {
         if (!isArray())
-            *this = array;
+            *this = emptyArray;
         
         boost::get<Array>(data).emplace_back(value);
     }
@@ -160,7 +160,7 @@ namespace json
 	Value& Value::operator[](size_t index)
     {
         if (!isArray())
-            *this = array;
+            *this = emptyArray;
         
         if (index >= size())
             throw runtime_error("Json array value, index " + to_string(index) + " out of bounds");
@@ -190,7 +190,7 @@ namespace json
     Value& Value::operator[](const string& key)
     {
         if (!isObject())
-            *this = object;
+            *this = emptyObject;
         
         return boost::get<Object>(data)[key];
     }
