@@ -271,6 +271,14 @@ namespace json
 		//! Retrieve the value as a string
 		/*! @throw std::runtime_error if the value is not a string */
 		const std::string& asString() const;
+        
+        //! Retrieve the value as an array
+        /*! @throw std::runtime_error if the value is not an array */
+        const Array& asArray() const;
+        
+        //! Retrieve the value as an object
+        /*! @throw std::runtime_error if the value is not an object */
+        const Object& asObject() const;
 
 		//! Represent the Json value as a variant
 		const auto& asVariant() const { return data; }
@@ -332,14 +340,14 @@ namespace json
         static const Value null;
         
         //! Generic empty array
-        static const Value array;
+        static const Value emptyArray;
         
         //! Generic empty object
-        static const Value object;
+        static const Value emptyObject;
 
 	private:
 		//! Contains the actual data for this Json value
-		boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, Array, Object> data;
+        boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, boost::recursive_wrapper<Array>, boost::recursive_wrapper<Object>> data;
 	};
 
 	//! Compare two values for equality

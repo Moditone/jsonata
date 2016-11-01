@@ -17,8 +17,8 @@ using namespace std;
 namespace json
 {
     const Value Value::null = Value::Null{};
-    const Value Value::array = Value::Array{};
-    const Value Value::object = Value::Object{};
+    const Value Value::emptyArray = Value::Array{};
+    const Value Value::emptyObject = Value::Object{};
     
     Value::Value(Null) : data(Null{}) { }
 	Value::Value(bool boolean) : data(boolean) { }
@@ -87,7 +87,7 @@ namespace json
 	bool Value::asBool() const
 	{
 		if (!isBool())
-			throw runtime_error("Json value is no boolean, yet asBool() was called on it");
+			throw runtime_error("Json value is not a boolean, yet asBool() was called on it");
 
 		return boost::get<bool>(data);
 	}
@@ -99,7 +99,7 @@ namespace json
             case 2: return boost::get<int64_t>(data);
             case 3: return boost::get<uint64_t>(data);
             case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
         }
     }
     
@@ -110,7 +110,7 @@ namespace json
             case 2: return boost::get<int64_t>(data);
             case 3: return boost::get<uint64_t>(data);
             case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
         }
     }
 
@@ -121,22 +121,38 @@ namespace json
             case 2: return boost::get<int64_t>(data);
             case 3: return boost::get<uint64_t>(data);
             case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is no number, yet asNumber() was called on it");
+            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
         }
 	}
 
 	const string& Value::asString() const
 	{
 		if (!isString())
-			throw runtime_error("Json value is no boolean, yet asString() was called on it");
+			throw runtime_error("Json value is not a string, yet asString() was called on it");
 
 		return boost::get<string>(data);
 	}
+    
+    const Value::Array& Value::asArray() const
+    {
+        if (!isArray())
+            throw runtime_error("Json value is not an array, yet asArray() was called on it");
+        
+        return boost::get<Array>(data);
+    }
+    
+    const Value::Object& Value::asObject() const
+    {
+        if (!isObject())
+            throw runtime_error("Json value is not an object, yet asObject() was called on it");
+        
+        return boost::get<Object>(data);
+    }
 
 	void Value::append(const Value& value)
     {
         if (!isArray())
-            *this = array;
+            *this = emptyArray;
         
         boost::get<Array>(data).emplace_back(value);
     }
@@ -144,7 +160,7 @@ namespace json
 	Value& Value::operator[](size_t index)
     {
         if (!isArray())
-            *this = array;
+            *this = emptyArray;
         
         if (index >= size())
             throw runtime_error("Json array value, index " + to_string(index) + " out of bounds");
@@ -174,7 +190,7 @@ namespace json
     Value& Value::operator[](const string& key)
     {
         if (!isObject())
-            *this = object;
+            *this = emptyObject;
         
         return boost::get<Object>(data)[key];
     }
