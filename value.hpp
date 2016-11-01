@@ -62,7 +62,7 @@ namespace json
             
         private:
             //! The iterator pointing to the element data
-            boost::variant<Array::iterator, Object::iterator> iterator;
+            boost::variant<boost::recursive_wrapper<Array::iterator>, boost::recursive_wrapper<Object::iterator>> iterator;
         };
         
         //! Represents an element in a Json array or object
@@ -92,7 +92,7 @@ namespace json
             
         private:
             //! The iterator pointing to the element data
-            boost::variant<Array::const_iterator, Object::const_iterator> iterator;
+            boost::variant<boost::recursive_wrapper<Array::const_iterator>, boost::recursive_wrapper<Object::const_iterator>> iterator;
         };
         
         //! Iterator over a Json value
@@ -122,7 +122,7 @@ namespace json
             
         private:
             //! Variant containing the actual iterator
-            boost::variant<Array::iterator, Object::iterator> iterator;
+            boost::variant<boost::recursive_wrapper<Array::iterator>, boost::recursive_wrapper<Object::iterator>> iterator;
         };
         
         //! Iterator over a Json value
@@ -152,7 +152,7 @@ namespace json
             
         private:
             //! Variant containing the actual iterator
-            boost::variant<Array::const_iterator, Object::const_iterator> iterator;
+            boost::variant<boost::recursive_wrapper<Array::const_iterator>, boost::recursive_wrapper<Object::const_iterator>> iterator;
         };
         
 	public:
