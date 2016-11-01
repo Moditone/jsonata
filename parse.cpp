@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <codecvt>
+#include <locale>
 #include <sstream>
 #include <stdexcept>
 #include <string>
