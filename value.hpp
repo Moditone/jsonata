@@ -13,8 +13,8 @@
 #include <boost/variant.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace json
@@ -30,7 +30,7 @@ namespace json
         using Array = std::vector<Value>;
         
         //! Convenience alias for Json objects
-        using Object = std::unordered_map<std::string, Value>;
+        using Object = std::map<std::string, Value>;
         
         class Iterator;
         class ConstIterator;
