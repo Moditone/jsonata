@@ -347,7 +347,7 @@ namespace json
 
 	private:
 		//! Contains the actual data for this Json value
-		boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, Array, Object> data;
+        boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, boost::recursive_wrapper<Array>, boost::recursive_wrapper<Object>> data;
 	};
 
 	//! Compare two values for equality
