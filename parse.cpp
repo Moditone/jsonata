@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <codecvt>
+#include <ios>
 #include <locale>
 #include <sstream>
 #include <stdexcept>
@@ -42,7 +43,7 @@ namespace json
         if (expectation == string(reality, numRead))
             return true;
         
-        stream.seekg(-numRead, ios_base::seekdir::cur);
+        stream.seekg(-numRead, ios_base::cur);
         return false;
     }
     
