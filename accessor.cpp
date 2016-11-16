@@ -34,12 +34,10 @@ namespace json
     
     Value& Value::Accessor::value()
     {
-        switch (iterator.which())
-        {
-            case 0: return *boost::get<Array::iterator>(iterator);
-            case 1: return boost::get<Object::iterator>(iterator)->second;
-            default: assert(false);
-        }
+        if (iterator.which() == 0)
+            return *boost::get<Array::iterator>(iterator);
+        else
+            return boost::get<Object::iterator>(iterator)->second;
     }
     
 // --- ConstAccessor --- //
@@ -60,11 +58,9 @@ namespace json
     
     const Value& Value::ConstAccessor::value()
     {
-        switch (iterator.which())
-        {
-            case 0: return *boost::get<Array::const_iterator>(iterator);
-            case 1: return boost::get<Object::const_iterator>(iterator)->second;
-            default: assert(false);
-        }
+        if (iterator.which() == 0)
+            return *boost::get<Array::const_iterator>(iterator);
+        else
+            return boost::get<Object::const_iterator>(iterator)->second;
     }
 }
