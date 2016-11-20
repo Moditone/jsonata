@@ -40,7 +40,7 @@ namespace json
         else if (value.isUnsignedInteger())
             stream << value.asUnsignedInteger();
         else if (value.isReal())
-            stream << fixed << value.asReal();
+            stream << value.asReal();
         else if (value.isString())
         {
             write(stream, value.asString());
