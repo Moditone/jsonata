@@ -2,8 +2,7 @@
 //  parse.cpp
 //  Jsonata
 //
-//  Created by Stijn Frishert (info@stijnfrishert.com) on 10/10/2016.
-//  Copyright © 2015-2016 Stijn Frishert. All rights reserved.
+//  Copyright © 2015-2016 Dsperados (info@dsperados.com). All rights reserved.
 //  Licensed under the BSD 3-clause license.
 //
 
@@ -158,6 +157,9 @@ namespace json
             }
             
             // Read the key
+            if (stream.peek() != '"')
+                throw runtime_error("expected a '\"' to start an object key");
+            
             const auto key = parseString(stream);
             if (stream.get() != ':')
                 throw runtime_error("Json expected a ':' after an object key");
