@@ -2,8 +2,7 @@
 //  writer.hpp
 //  Jsonata
 //
-//  Created by Stijn Frishert (info@stijnfrishert.com) on 10/10/2016.
-//  Copyright © 2015-2016 Stijn Frishert. All rights reserved.
+//  Copyright © 2015-2016 Dsperados (info@dsperados.com). All rights reserved.
 //  Licensed under the BSD 3-clause license.
 //
 
