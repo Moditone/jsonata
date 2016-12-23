@@ -39,6 +39,11 @@ namespace json
 	{
 		*this = string;
 	}
+    
+    Value::Value(Value&& rhs)
+    {
+        *this = move(rhs);
+    }
 
 	Value& Value::operator=(Null)
 	{
@@ -71,6 +76,14 @@ namespace json
 		data = object;
 		return *this;
 	}
+    
+    Value& Value::operator=(Value&& rhs)
+    {
+        data = rhs.data;
+        rhs = null;
+        
+        return *this;
+    }
 
 	bool Value::isNull() const { return data.type() == typeid(Null); }
 	bool Value::isBool() const { return data.type() == typeid(bool); }

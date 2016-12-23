@@ -178,6 +178,10 @@ namespace json
 		//! Construct a string value
 		/*! @throw std::invalid_argument if the string is a nullptr */
 		Value(const char* string);
+        
+        //! Copy and move
+        Value(const Value& rhs) = default;
+        Value(Value&& rhs);
 
 	// Assignment
 
@@ -235,6 +239,10 @@ namespace json
 
 		//! Assign a new object value
 		Value& operator=(const Object& object);
+        
+        // Copy and move
+        Value& operator=(const Value& rhs) = default;
+        Value& operator=(Value&& rhs);
 
 	// Predicates
 
