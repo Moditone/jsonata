@@ -171,10 +171,9 @@ namespace json
             const auto key = parseString(stream);
             if (stream.get() != ':')
                 throw runtime_error("Json expected a ':' after an object key");
-            
+                        
             // Parse the value
-            auto value = parse(stream);
-            object.emplace(key, move(value));
+            object.emplace(key, parse(stream));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, '}');

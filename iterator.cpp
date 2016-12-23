@@ -18,52 +18,64 @@ namespace json
 // --- Iterator --- //
     
 	Value::Iterator::Iterator(Array::iterator iterator) :
-		iterator(iterator)
+        toArray(true),
+		itArray(iterator)
 	{
 
 	}
 
 	Value::Iterator::Iterator(Object::iterator iterator) :
-		iterator(iterator)
+        toArray(false),
+		itObject(iterator)
 	{
 		
 	}
 
 	Value::Iterator& Value::Iterator::operator++()
 	{
-		switch (iterator.which())
-		{
-			case 0: ++boost::get<Array::iterator>(iterator); break;
-			case 1: ++boost::get<Object::iterator>(iterator); break;
-		}
+        if (toArray)
+            ++itArray;
+        else
+            ++itObject;
 
 		return *this;
 	}
 
 	Value::Iterator& Value::Iterator::operator++(int)
 	{
-		switch (iterator.which())
-		{
-			case 0: boost::get<Array::iterator>(iterator)++; break;
-			case 1: boost::get<Object::iterator>(iterator)++; break;
-		}
+        if (toArray)
+            ++itArray;
+        else
+            ++itObject;
 
 		return *this;
 	}
 
 	Value::Accessor Value::Iterator::operator*()
 	{
-		return {*this};
+        if (toArray)
+            return itArray;
+        else
+            return itObject;
 	}
 
 	Value::Accessor Value::Iterator::operator->()
 	{
-		return {*this};
+        if (toArray)
+            return itArray;
+        else
+            return itObject;
 	}
 
 	bool operator==(const Value::Iterator& lhs, const Value::Iterator& rhs)
 	{
-		return lhs.asVariant() == rhs.asVariant();
+        if (lhs.toArray != rhs.toArray)
+            return false;
+        
+        if (lhs.toArray)
+            return lhs.itArray == rhs.itArray;
+        else
+            return lhs.itObject == rhs.itObject;
 	}
 
 	bool operator!=(const Value::Iterator& lhs, const Value::Iterator& rhs)
@@ -74,52 +86,64 @@ namespace json
 // --- ConstIterator --- //
     
     Value::ConstIterator::ConstIterator(Array::const_iterator iterator) :
-        iterator(iterator)
+        toArray(true),
+        itArray(iterator)
     {
         
     }
     
     Value::ConstIterator::ConstIterator(Object::const_iterator iterator) :
-        iterator(iterator)
+        toArray(false),
+        itObject(iterator)
     {
         
     }
     
     Value::ConstIterator& Value::ConstIterator::operator++()
     {
-        switch (iterator.which())
-        {
-            case 0: ++boost::get<Array::const_iterator>(iterator); break;
-            case 1: ++boost::get<Object::const_iterator>(iterator); break;
-        }
+        if (toArray)
+            ++itArray;
+        else
+            ++itObject;
         
         return *this;
     }
     
     Value::ConstIterator& Value::ConstIterator::operator++(int)
     {
-        switch (iterator.which())
-        {
-            case 0: boost::get<Array::const_iterator>(iterator)++; break;
-            case 1: boost::get<Object::const_iterator>(iterator)++; break;
-        }
+        if (toArray)
+            ++itArray;
+        else
+            ++itObject;
         
         return *this;
     }
     
     Value::ConstAccessor Value::ConstIterator::operator*()
     {
-        return {*this};
+        if (toArray)
+            return itArray;
+        else
+            return itObject;
     }
     
     Value::ConstAccessor Value::ConstIterator::operator->()
     {
-        return {*this};
+        if (toArray)
+            return itArray;
+        else
+            return itObject;
     }
     
     bool operator==(const Value::ConstIterator& lhs, const Value::ConstIterator& rhs)
     {
-        return lhs.asVariant() == rhs.asVariant();
+        if (lhs.toArray != rhs.toArray)
+            return false;
+        
+        if (lhs.toArray)
+            return lhs.itArray == rhs.itArray;
+        else
+            return lhs.itObject == rhs.itObject;
     }
     
     bool operator!=(const Value::ConstIterator& lhs, const Value::ConstIterator& rhs)

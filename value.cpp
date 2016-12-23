@@ -19,8 +19,9 @@ namespace json
     const Value Value::emptyArray = Value::Array{};
     const Value Value::emptyObject = Value::Object{};
     
-    Value::Value(Null) : data(Null{}) { }
-	Value::Value(bool boolean) : data(boolean) { }
+    Value::Value() : type(Type::NIL) { }
+    Value::Value(Null) { *this = null; }
+    Value::Value(bool boolean) { *this = boolean; }
     Value::Value(short int number) { *this = number; }
     Value::Value(unsigned short int number) { *this = number; }
 	Value::Value(int number) { *this = number; }
@@ -31,109 +32,192 @@ namespace json
 	Value::Value(long long unsigned int number) { *this = number; }
 	Value::Value(double number) { *this = number; }
     Value::Value(long double number) { *this = number; }
-	Value::Value(const string& string) : data(string) { }
-	Value::Value(const Array& array) : data(array) { }
-	Value::Value(const Object& object) : data(object) { }
+    Value::Value(const std::string& string) { *this = string; }
+    Value::Value(const Array& array) { *this = array; }
+    Value::Value(const Object& object) { *this = object; }
 
 	Value::Value(const char* string)
 	{
 		*this = string;
 	}
     
+    Value::Value(const Value& rhs)
+    {
+        *this = rhs;
+    }
+    
     Value::Value(Value&& rhs)
     {
         *this = move(rhs);
     }
+    
+    Value::~Value()
+    {
+        destruct();
+    }
 
 	Value& Value::operator=(Null)
 	{
-        data = Null{};
+        destruct();
+        type = Type::NIL;
+        
 		return *this;
 	}
+    
+    Value& Value::operator=(bool boolean)
+    {
+        destruct();
+        type = Type::BOOLEAN;
+        this->boolean = boolean;
+        
+        return *this;
+    }
 
 	Value& Value::operator=(const char* string)
 	{
-		if (string == nullptr)
-			throw invalid_argument("Json value was assigned a nullptr string");
-
 		return *this = std::string(string);
 	}
 
-	Value& Value::operator=(const string& string)
+    Value& Value::operator=(const std::string& string)
 	{
-		data = string;
+        destruct();
+        type = Type::STRING;
+        new (&this->string) std::string(string);
+        
 		return *this;
 	}
 
 	Value& Value::operator=(const Array& array)
 	{
-		data = array;
+        destruct();
+        type = Type::ARRAY;
+        new (&this->array) unique_ptr<Array>(new Array(array));
+        
 		return *this;
 	}
 
 	Value& Value::operator=(const Object& object)
 	{
-		data = object;
+        destruct();
+        type = Type::OBJECT;
+        new (&this->object) unique_ptr<Object>(new Object(object));
+        
 		return *this;
 	}
     
+    Value& Value::operator=(const Value& rhs)
+    {
+        destruct();
+        
+        type = rhs.type;
+        switch (type)
+        {
+            case Type::NIL: break;
+            case Type::BOOLEAN: boolean = rhs.boolean; break;
+            case Type::SIGNED: signedInt = rhs.signedInt; break;
+            case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
+            case Type::REAL: real = rhs.real; break;
+            case Type::STRING: new (&string) std::string(rhs.string); break;
+            case Type::ARRAY: new (&array) unique_ptr<Array>(new Array(*rhs.array)); break;
+            case Type::OBJECT: new (&object) unique_ptr<Object>(new Object(*rhs.object)); break;
+        }
+        
+        return *this;
+    }
+    
     Value& Value::operator=(Value&& rhs)
     {
-        data = rhs.data;
+        destruct();
+        
+        type = rhs.type;
+        switch (type)
+        {
+            case Type::NIL: break;
+            case Type::BOOLEAN: boolean = rhs.boolean; break;
+            case Type::SIGNED: signedInt = rhs.signedInt; break;
+            case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
+            case Type::REAL: real = rhs.real; break;
+            case Type::STRING: new (&string) std::string(move(rhs.string)); break;
+            case Type::ARRAY:
+                new (&array) unique_ptr<Array>(move(rhs.array));
+                break;
+            case Type::OBJECT:
+                new (&object) unique_ptr<Object>(move(rhs.object));
+                break;
+        }
+        
         rhs = null;
         
         return *this;
     }
 
-	bool Value::isNull() const { return data.type() == typeid(Null); }
-	bool Value::isBool() const { return data.type() == typeid(bool); }
+    bool Value::isNull() const { return type == Type::NIL; }
+	bool Value::isBool() const { return type == Type::BOOLEAN; }
     bool Value::isNumber() const { return isInteger() || isReal(); }
     bool Value::isInteger() const { return isSignedInteger() || isUnsignedInteger(); }
-    bool Value::isSignedInteger() const { return data.type() == typeid(int64_t); }
-    bool Value::isUnsignedInteger() const { return data.type() == typeid(uint64_t); }
-    bool Value::isReal() const { return data.type() == typeid(long double); }
-	bool Value::isString() const { return data.type() == typeid(string); }
-	bool Value::isArray() const { return data.type() == typeid(Array); }
-	bool Value::isObject() const { return data.type() == typeid(Object); }
+    bool Value::isSignedInteger() const { return type == Type::SIGNED; }
+    bool Value::isUnsignedInteger() const { return type == Type::UNSIGNED; }
+    bool Value::isReal() const { return type == Type::REAL; }
+	bool Value::isString() const { return type == Type::STRING; }
+	bool Value::isArray() const { return type == Type::ARRAY; }
+	bool Value::isObject() const { return type == Type::OBJECT; }
 
 	bool Value::asBool() const
 	{
 		if (!isBool())
 			throw runtime_error("Json value is not a boolean, yet asBool() was called on it");
 
-		return boost::get<bool>(data);
+        return boolean;
 	}
     
     int64_t Value::asSignedInteger() const
     {
-        switch (data.which())
+        switch (type)
         {
-            case 2: return boost::get<int64_t>(data);
-            case 3: return boost::get<uint64_t>(data);
-            case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
+            case Type::SIGNED: return signedInt;
+            case Type::UNSIGNED: return static_cast<int64_t>(unsignedInt);
+            case Type::REAL: return static_cast<int64_t>(real);
+                
+            case Type::NIL:
+            case Type::BOOLEAN:
+            case Type::STRING:
+            case Type::ARRAY:
+            case Type::OBJECT:
+                default: throw runtime_error("Json value is not a number, yet asSignedInteger() was called on it");
         }
     }
     
     uint64_t Value::asUnsignedInteger() const
     {
-        switch (data.which())
+        switch (type)
         {
-            case 2: return boost::get<int64_t>(data);
-            case 3: return boost::get<uint64_t>(data);
-            case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
+            case Type::SIGNED: return static_cast<uint64_t>(signedInt);
+            case Type::UNSIGNED: return unsignedInt;
+            case Type::REAL: return static_cast<uint64_t>(real);
+                
+            case Type::NIL:
+            case Type::BOOLEAN:
+            case Type::STRING:
+            case Type::ARRAY:
+            case Type::OBJECT:
+            default: throw runtime_error("Json value is not a number, yet asUnsignedInteger() was called on it");
         }
     }
 
 	long double Value::asReal() const
 	{
-        switch (data.which())
+        switch (type)
         {
-            case 2: return boost::get<int64_t>(data);
-            case 3: return boost::get<uint64_t>(data);
-            case 4: return boost::get<long double>(data);
-            default: throw runtime_error("Json value is not a number, yet asNumber() was called on it");
+            case Type::SIGNED: return static_cast<long double>(signedInt);
+            case Type::UNSIGNED: return static_cast<long double>(unsignedInt);
+            case Type::REAL: return real;
+                
+            case Type::NIL:
+            case Type::BOOLEAN:
+            case Type::STRING:
+            case Type::ARRAY:
+            case Type::OBJECT:
+            default: throw runtime_error("Json value is not a number, yet asReal() was called on it");
         }
 	}
 
@@ -142,7 +226,7 @@ namespace json
 		if (!isString())
 			throw runtime_error("Json value is not a string, yet asString() was called on it");
 
-		return boost::get<string>(data);
+        return string;
 	}
     
     const Value::Array& Value::asArray() const
@@ -150,7 +234,7 @@ namespace json
         if (!isArray())
             throw runtime_error("Json value is not an array, yet asArray() was called on it");
         
-        return boost::get<Array>(data);
+        return *array;
     }
     
     const Value::Object& Value::asObject() const
@@ -158,7 +242,7 @@ namespace json
         if (!isObject())
             throw runtime_error("Json value is not an object, yet asObject() was called on it");
         
-        return boost::get<Object>(data);
+        return *object;
     }
 
 	void Value::append(const Value& value)
@@ -166,7 +250,7 @@ namespace json
         if (!isArray())
             *this = emptyArray;
         
-        boost::get<Array>(data).emplace_back(value);
+        array->emplace_back(value);
     }
 
 	Value& Value::operator[](size_t index)
@@ -177,7 +261,7 @@ namespace json
         if (index >= size())
             throw runtime_error("Json array value, index " + to_string(index) + " out of bounds");
         
-        return boost::get<Array>(data).at(index);
+        return array->at(index);
     }
     
     const Value& Value::operator[](size_t index) const
@@ -188,7 +272,7 @@ namespace json
         if (index >= size())
             throw runtime_error("Json array, index " + to_string(index) + " out of bounds");
         
-        return boost::get<Array>(data).at(index);
+        return array->at(index);
     }
     
     Value Value::access(const size_t& index, const Value& alternative) const
@@ -199,28 +283,27 @@ namespace json
         return (*this)[index];
     }
     
-    Value& Value::operator[](const string& key)
+    Value& Value::operator[](const std::string& key)
     {
         if (!isObject())
             *this = emptyObject;
         
-        return boost::get<Object>(data)[key];
+        return (*object)[key];
     }
     
-    const Value& Value::operator[](const string& key) const
+    const Value& Value::operator[](const std::string& key) const
     {
         if (!isObject())
             throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
         
-        auto& object = boost::get<Object>(data);
-        auto it = object.find(key);
-        if (it == object.end())
+        auto it = object->find(key);
+        if (it == object->end())
             throw runtime_error("Json object, key '" + key + "' not found");
         
         return it->second;
     }
     
-    Value Value::access(const string& key, const Value& alternative) const
+    Value Value::access(const std::string& key, const Value& alternative) const
     {
         if (!hasKey(key))
             return alternative;
@@ -231,9 +314,9 @@ namespace json
 	size_t Value::size() const
 	{
 		if (isArray())
-            return boost::get<Array>(data).size();
+            return array->size();
         else if (isObject())
-            return boost::get<Object>(data).size();
+            return object->size();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call size() on it");
 	}
@@ -241,9 +324,9 @@ namespace json
 	bool Value::empty() const
 	{
 		if (isArray())
-            return boost::get<Array>(data).empty();
+            return array->empty();
         else if (isObject())
-            return boost::get<Object>(data).empty();
+            return object->empty();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call empty() on it");
 	}
@@ -253,27 +336,27 @@ namespace json
         if (!isObject())
             throw runtime_error("Json value is not an object, but tried to call keys() on it");
         
-        vector<string> keys;
-        for (auto& pair : boost::get<Object>(data))
+        vector<std::string> keys;
+        for (auto& pair : *object)
             keys.emplace_back(pair.first);
 
         return keys;
     }
     
-    bool Value::hasKey(const string& key) const
+    bool Value::hasKey(const std::string& key) const
     {
         if (!isObject())
             return false;
         
-        return boost::get<Object>(data).count(key) > 0;
+        return object->count(key) > 0;
     }
 
     Value::Iterator Value::begin()
     {
     	if (isArray())
-            return boost::get<Array>(data).begin();
+            return array->begin();
         else if (isObject())
-            return boost::get<Object>(data).begin();
+            return object->begin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -281,9 +364,9 @@ namespace json
     Value::ConstIterator Value::begin() const
     {
         if (isArray())
-            return boost::get<Array>(data).begin();
+            return array->cbegin();
         else if (isObject())
-            return boost::get<Object>(data).begin();
+            return object->cbegin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -291,9 +374,9 @@ namespace json
     Value::ConstIterator Value::cbegin() const
     {
         if (isArray())
-            return boost::get<Array>(data).begin();
+            return array->cbegin();
         else if (isObject())
-            return boost::get<Object>(data).begin();
+            return object->cbegin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -301,9 +384,9 @@ namespace json
     Value::Iterator Value::end()
     {
     	if (isArray())
-            return boost::get<Array>(data).end();
+            return array->end();
         else if (isObject())
-            return boost::get<Object>(data).end();
+            return object->end();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
@@ -311,9 +394,9 @@ namespace json
     Value::ConstIterator Value::end() const
     {
         if (isArray())
-            return boost::get<Array>(data).end();
+            return array->cend();
         else if (isObject())
-            return boost::get<Object>(data).end();
+            return object->cend();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
@@ -321,16 +404,51 @@ namespace json
     Value::ConstIterator Value::cend() const
     {
         if (isArray())
-            return boost::get<Array>(data).end();
+            return array->cend();
         else if (isObject())
-            return boost::get<Object>(data).end();
+            return object->cend();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
+    }
+    
+    void Value::destruct()
+    {
+        switch (type)
+        {
+            case Type::NIL:
+            case Type::BOOLEAN:
+            case Type::SIGNED:
+            case Type::UNSIGNED:
+            case Type::REAL:
+                break;
+            case Type::STRING:
+                string.~basic_string();
+                break;
+            case Type::ARRAY:
+                array.~unique_ptr<Array>();
+                break;
+            case Type::OBJECT:
+                object.~unique_ptr<Object>();
+                break;
+        }
     }
 
 	bool operator==(const Value& lhs, const Value& rhs)
 	{
-		return lhs.asVariant() == rhs.asVariant();
+        if (lhs.type != rhs.type)
+            return false;
+        
+        switch (lhs.type)
+        {
+            case Value::Type::NIL: return true;
+            case Value::Type::BOOLEAN: return lhs.boolean == rhs.boolean;
+            case Value::Type::UNSIGNED: return lhs.unsignedInt == rhs.unsignedInt;
+            case Value::Type::SIGNED: return lhs.signedInt == rhs.signedInt;
+            case Value::Type::REAL: return lhs.real == rhs.real;
+            case Value::Type::STRING: return lhs.string == rhs.string;
+            case Value::Type::ARRAY: return lhs.array == rhs.array;
+            case Value::Type::OBJECT: return lhs.object == rhs.object;
+        }
 	}
 
 	bool operator!=(const Value& lhs, const Value& rhs)

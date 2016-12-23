@@ -5,7 +5,7 @@ project(jsonata)
 add_definitions(-std=c++1z -Wall)
 include_directories(/usr/local/include)
 
-add_library(jsonata SHARED
+add_library(jsonata
     accessor.cpp
     iterator.cpp
     json.hpp

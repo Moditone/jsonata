@@ -17,49 +17,59 @@ namespace json
 
 // --- Accessor --- //
     
-    Value::Accessor::Accessor(const Value::Iterator& iterator) :
-        iterator(iterator.asVariant())
+    Value::Accessor::Accessor(Array::iterator iterator) :
+        toArray(true),
+        itArray(iterator)
+    {
+        
+    }
+    
+    Value::Accessor::Accessor(Object::iterator iterator) :
+        toArray(false),
+        itObject(iterator)
     {
         
     }
     
     const string& Value::Accessor::key()
     {
-        if (iterator.type() == typeid(Object::iterator))
-            return boost::get<Object::iterator>(iterator)->first;
+        if (toArray)
+            throw runtime_error("Accessor does not point to an object element, yet key() was called on it");
         
-        throw runtime_error("Accessor does not point to an object element, yet key() was called on it");
+        return itObject->first;
     }
     
     Value& Value::Accessor::value()
     {
-        if (iterator.which() == 0)
-            return *boost::get<Array::iterator>(iterator);
-        else
-            return boost::get<Object::iterator>(iterator)->second;
+        return toArray ? *itArray : itObject->second;
     }
     
 // --- ConstAccessor --- //
     
-    Value::ConstAccessor::ConstAccessor(const Value::ConstIterator& iterator) :
-        iterator(iterator.asVariant())
+    Value::ConstAccessor::ConstAccessor(Array::const_iterator iterator) :
+        toArray(true),
+        itArray(iterator)
+    {
+        
+    }
+    
+    Value::ConstAccessor::ConstAccessor(Object::const_iterator iterator) :
+        toArray(false),
+        itObject(iterator)
     {
         
     }
     
     const string& Value::ConstAccessor::key()
     {
-        if (iterator.type() == typeid(Object::const_iterator))
-            return boost::get<Object::const_iterator>(iterator)->first;
+        if (toArray)
+            throw runtime_error("ConstAccessor does not point to an object element, yet key() was called on it");
         
-        throw runtime_error("Accessor does not point to an object element, yet key() was called on it");
+        return itObject->first;
     }
     
     const Value& Value::ConstAccessor::value()
     {
-        if (iterator.which() == 0)
-            return *boost::get<Array::const_iterator>(iterator);
-        else
-            return boost::get<Object::const_iterator>(iterator)->second;
+        return toArray ? *itArray : itObject->second;
     }
 }
