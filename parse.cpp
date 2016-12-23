@@ -29,7 +29,7 @@ namespace json
     void skipWhitespaceAndCheckEof(istream& stream, char expectation)
     {
         skipWhitespace(stream);
-               
+    
         if (!stream.good() || stream.eof())
             throw runtime_error("Json reached end-of-stream, but expected " + string(1, expectation) + " first");
     }
@@ -71,7 +71,8 @@ namespace json
     
     string parseString(istream& stream)
     {
-        assert(stream.get() == '"');
+        assert(stream.peek() == '"');
+        stream.ignore(); // "
         
         string string;
         
@@ -111,9 +112,10 @@ namespace json
     
     Value parseArray(istream& stream)
     {
-        assert(stream.get() == '[');
+        assert(stream.peek() == '[');
+        stream.ignore(); // [
         
-        auto value = Value::emptyArray;
+        Value::Array array;
         
         while (true)
         {
@@ -122,29 +124,35 @@ namespace json
             if (stream.peek() == ']')
             {
                 stream.ignore();
-                return value;
+                return array;
             }
             
             // Append the array
-            value.append(parse(stream));
+            array.emplace_back(parse(stream));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, ']');
             
-            switch (stream.get())
+            switch (stream.peek())
             {
-                case ',': continue;
-                case ']': return value;
-                default: throw runtime_error("Json expected either ',' or ']'");
+                case ',':
+                    stream.ignore();
+                    continue;
+                case ']':
+                    stream.ignore();
+                    return array;
+                default:
+                    throw runtime_error("Json expected either ',' or ']'");
             }
         }
     }
     
     Value parseObject(istream& stream)
     {
-        assert(stream.get() == '{');
+        assert(stream.peek() == '{');
+        stream.ignore(); // {
         
-        auto value = Value::emptyObject;
+        Value::Object object;
         
         while (true)
         {
@@ -153,7 +161,7 @@ namespace json
             if (stream.peek() == '}')
             {
                 stream.ignore();
-                return value;
+                return object;
             }
             
             // Read the key
@@ -165,16 +173,22 @@ namespace json
                 throw runtime_error("Json expected a ':' after an object key");
             
             // Parse the value
-            value[key] = parse(stream);
+            auto value = parse(stream);
+            object.emplace(key, move(value));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, '}');
             
-            switch (stream.get())
+            switch (stream.peek())
             {
-                case ',': continue;
-                case '}': return value;
-                default: throw runtime_error("Json expected either ',' or '}'");
+                case ',':
+                    stream.ignore();
+                    continue;
+                case '}':
+                    stream.ignore();
+                    return object;
+                default:
+                    throw runtime_error("Json expected either ',' or '}'");
             }
         }
     }
