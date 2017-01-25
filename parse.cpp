@@ -42,7 +42,9 @@ namespace json
         if (expectation == string(reality, numRead))
             return true;
         
-        stream.seekg(-numRead, ios_base::cur);
+        for (auto i = numRead - 1; i >= 0; --i)
+            stream.putback(reality[i]);
+        
         return false;
     }
     
