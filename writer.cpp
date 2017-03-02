@@ -39,9 +39,21 @@ namespace json
         else if (value.isUnsignedInteger())
             stream << value.asUnsignedInteger();
         else if (value.isReal())
-            stream << value.asReal();
-        else if (value.isString())
         {
+            stringstream stream2;
+            stream2 << fixed;
+            stream2.precision(8);
+            stream2 << value.asReal();
+            auto str = stream2.str();
+            
+            while (str.back() == '0')
+                str.pop_back();
+            
+            if (str.back() == '.')
+                str.pop_back();
+            
+            stream << str;
+        } else if (value.isString()) {
             write(stream, value.asString());
         } else if (value.isArray()) {
             stream << '[';
@@ -101,6 +113,12 @@ namespace json
     {
         if (value.isArray())
         {
+            if (value.empty())
+            {
+                stream << "[]";
+                return;
+            }
+            
             stream << "[\n";
             ++indentation;
             
@@ -120,6 +138,12 @@ namespace json
             
             stream << ']';
         } else if (value.isObject()) {
+            if (value.empty())
+            {
+                stream << "{}";
+                return;
+            }
+            
             stream << "{\n";
             ++indentation;
             
