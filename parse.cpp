@@ -36,10 +36,10 @@ namespace json
     
     bool expect(istream& stream, const string& expectation)
     {
-        char reality[expectation.size()];
-        auto numRead = stream.readsome(reality, expectation.size());
+        vector<char> reality(expectation.size());
+        auto numRead = stream.readsome(reality.data(), expectation.size());
         
-        if (expectation == string(reality, numRead))
+        if (expectation == string(reality.data(), numRead))
             return true;
         
         for (auto i = numRead - 1; i >= 0; --i)
