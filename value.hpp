@@ -48,6 +48,9 @@ namespace json
             //! Construct the accessor from an iterator
             Accessor(Object::iterator iterator);
             
+            //! Destruct the accessor
+            ~Accessor();
+            
             //! Return the key of an object key/value pair
             /*! @throw std::runtime_error if the accessor does not point to an object element */
             const std::string& key();
@@ -88,6 +91,9 @@ namespace json
             
             //! Construct the accessor from an iterator
             ConstAccessor(Object::const_iterator iterator);
+            
+            //! Destruct the accessor
+            ~ConstAccessor();
             
             //! Return the key of an object key/value pair
             /*! @throw std::runtime_error if the accessor does not point to an object element */
@@ -132,6 +138,9 @@ namespace json
             //! Construct the iterator from an object iterator
             Iterator(Object::iterator iterator);
             
+            //! Destruct the iterator
+            ~Iterator();
+            
             //! Increment the iterator
             Iterator& operator++();
             
@@ -169,6 +178,9 @@ namespace json
             
             //! Construct the iterator from an object iterator
             ConstIterator(Object::const_iterator iterator);
+            
+            //! Destruct the iterator
+            ~ConstIterator();
             
             //! Increment the iterator
             ConstIterator& operator++();

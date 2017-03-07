@@ -17,6 +17,14 @@ namespace json
 
 // --- Accessor --- //
     
+    // Function calling explicit destructor, circumventing a bug in Clang
+    // http://stackoverflow.com/questions/42646680/how-do-i-explicitly-call-the-destructor-of-std-iterators
+    template<class T>
+    void destroy_at(T* p)
+    {
+        p->~T();
+    }
+    
     Value::Accessor::Accessor(Array::iterator iterator) :
         toArray(true),
         itArray(iterator)
@@ -29,6 +37,14 @@ namespace json
         itObject(iterator)
     {
         
+    }
+    
+    Value::Accessor::~Accessor()
+    {
+        if (toArray)
+            destroy_at(&itArray);
+        else
+            destroy_at(&itObject);
     }
     
     const string& Value::Accessor::key()
@@ -58,6 +74,14 @@ namespace json
         itObject(iterator)
     {
         
+    }
+    
+    Value::ConstAccessor::~ConstAccessor()
+    {
+        if (toArray)
+            destroy_at(&itArray);
+        else
+            destroy_at(&itObject);
     }
     
     const string& Value::ConstAccessor::key()

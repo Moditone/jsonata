@@ -17,6 +17,14 @@ namespace json
     
 // --- Iterator --- //
     
+    // Function calling explicit destructor, circumventing a bug in Clang
+    // http://stackoverflow.com/questions/42646680/how-do-i-explicitly-call-the-destructor-of-std-iterators
+    template<class T>
+    void destroy_at(T* p)
+    {
+        p->~T();
+    }
+    
 	Value::Iterator::Iterator(Array::iterator iterator) :
         toArray(true),
 		itArray(iterator)
@@ -30,6 +38,14 @@ namespace json
 	{
 		
 	}
+    
+    Value::Iterator::~Iterator()
+    {
+        if (toArray)
+            destroy_at(&itArray);
+        else
+            destroy_at(&itObject);
+    }
 
 	Value::Iterator& Value::Iterator::operator++()
 	{
@@ -97,6 +113,14 @@ namespace json
         itObject(iterator)
     {
         
+    }
+    
+    Value::ConstIterator::~ConstIterator()
+    {
+        if (toArray)
+            destroy_at(&itArray);
+        else
+            destroy_at(&itObject);
     }
     
     Value::ConstIterator& Value::ConstIterator::operator++()
