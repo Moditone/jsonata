@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(jsonata)
 
-add_definitions(-std=c++1z -Wall)
+add_definitions(-std=c++14 -Wall)
 include_directories(/usr/local/include)
 
 add_library(jsonata
