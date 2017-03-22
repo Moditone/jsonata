@@ -48,7 +48,7 @@ namespace json
     
     Value::Value(Value&& rhs)
     {
-        *this = move(rhs);
+        *this = std::move(rhs);
     }
     
     Value::~Value()
@@ -102,7 +102,7 @@ namespace json
         type = Type::OBJECT;
         new (&this->object) unique_ptr<Object>(new Object);
         for (auto& pair : object)
-            this->object->emplace(pair.first, make_unique<Value>(*pair.second));
+            this->object.emplace(pair.first, make_unique<Value>(*pair.second));
         
 		return *this;
 	}
@@ -121,7 +121,7 @@ namespace json
             case Type::REAL: real = rhs.real; break;
             case Type::STRING: new (&string) std::string(rhs.string); break;
             case Type::ARRAY: new (&array) unique_ptr<Array>(new Array(*rhs.array)); break;
-            case Type::OBJECT: *this = *rhs.object; break;
+            case Type::OBJECT: *this = rhs.object; break;
         }
         
         return *this;
@@ -139,12 +139,12 @@ namespace json
             case Type::SIGNED: signedInt = rhs.signedInt; break;
             case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
             case Type::REAL: real = rhs.real; break;
-            case Type::STRING: new (&string) std::string(move(rhs.string)); break;
+            case Type::STRING: new (&string) std::string(std::move(rhs.string)); break;
             case Type::ARRAY:
-                new (&array) unique_ptr<Array>(move(rhs.array));
+                new (&array) unique_ptr<Array>(std::move(rhs.array));
                 break;
             case Type::OBJECT:
-                new (&object) unique_ptr<Object>(move(rhs.object));
+                new (&object) Object(std::move(rhs.object));
                 break;
         }
         
@@ -244,7 +244,7 @@ namespace json
         if (!isObject())
             throw runtime_error("Json value is not an object, yet asObject() was called on it");
         
-        return *object;
+        return object;
     }
 
 	void Value::append(const Value& value)
@@ -290,7 +290,7 @@ namespace json
         if (!isObject())
             *this = emptyObject;
         
-        return *(*object)[key];
+        return *(object)[key];
     }
     
     const Value& Value::operator[](const std::string& key) const
@@ -298,8 +298,8 @@ namespace json
         if (!isObject())
             throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
         
-        auto it = object->find(key);
-        if (it == object->end())
+        auto it = object.find(key);
+        if (it == object.end())
             throw runtime_error("Json object, key '" + key + "' not found");
         
         return *it->second;
@@ -318,7 +318,7 @@ namespace json
 		if (isArray())
             return array->size();
         else if (isObject())
-            return object->size();
+            return object.size();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call size() on it");
 	}
@@ -328,7 +328,7 @@ namespace json
 		if (isArray())
             return array->empty();
         else if (isObject())
-            return object->empty();
+            return object.empty();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call empty() on it");
 	}
@@ -339,7 +339,7 @@ namespace json
             throw runtime_error("Json value is not an object, but tried to call keys() on it");
         
         vector<std::string> keys;
-        for (auto& pair : *object)
+        for (auto& pair : object)
             keys.emplace_back(pair.first);
 
         return keys;
@@ -350,7 +350,7 @@ namespace json
         if (!isObject())
             return false;
         
-        return object->count(key) > 0;
+        return object.count(key) > 0;
     }
 
     Value::Iterator Value::begin()
@@ -358,7 +358,7 @@ namespace json
     	if (isArray())
             return array->begin();
         else if (isObject())
-            return object->begin();
+            return object.begin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -368,7 +368,7 @@ namespace json
         if (isArray())
             return array->cbegin();
         else if (isObject())
-            return object->cbegin();
+            return object.cbegin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -378,7 +378,7 @@ namespace json
         if (isArray())
             return array->cbegin();
         else if (isObject())
-            return object->cbegin();
+            return object.cbegin();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call begin() on it");
     }
@@ -388,7 +388,7 @@ namespace json
     	if (isArray())
             return array->end();
         else if (isObject())
-            return object->end();
+            return object.end();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
@@ -398,7 +398,7 @@ namespace json
         if (isArray())
             return array->cend();
         else if (isObject())
-            return object->cend();
+            return object.cend();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
@@ -408,7 +408,7 @@ namespace json
         if (isArray())
             return array->cend();
         else if (isObject())
-            return object->cend();
+            return object.cend();
         else
             throw runtime_error("Json value is neither array nor object, but tried to call end() on it");
     }
@@ -430,7 +430,7 @@ namespace json
                 array.~unique_ptr<Array>();
                 break;
             case Type::OBJECT:
-                object.~unique_ptr<Object>();
+                object.~Object();
                 break;
         }
     }

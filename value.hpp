@@ -426,7 +426,7 @@ namespace json
             long double real;
             std::string string;
             std::unique_ptr<Array> array;
-            std::unique_ptr<Object> object;
+            Object object;
         };
 	};
 
