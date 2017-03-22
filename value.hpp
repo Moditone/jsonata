@@ -32,7 +32,7 @@ namespace json
         using Array = std::vector<Value>;
         
         //! Convenience alias for Json objects
-        using Object = std::map<std::string, Value>;
+        using Object = std::map<std::string, std::unique_ptr<Value>>;
         
         class Iterator;
         class ConstIterator;

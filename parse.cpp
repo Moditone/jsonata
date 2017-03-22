@@ -175,7 +175,7 @@ namespace json
                 throw runtime_error("Json expected a ':' after an object key");
                         
             // Parse the value
-            object.emplace(key, parse(stream));
+            object.emplace(key, make_unique<Value>(parse(stream)));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, '}');

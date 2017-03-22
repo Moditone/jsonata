@@ -100,7 +100,9 @@ namespace json
 	{
         destruct();
         type = Type::OBJECT;
-        new (&this->object) unique_ptr<Object>(new Object(object));
+        new (&this->object) unique_ptr<Object>(new Object);
+        for (auto& pair : object)
+            this->object->emplace(pair.first, make_unique<Value>(*pair.second));
         
 		return *this;
 	}
@@ -119,7 +121,7 @@ namespace json
             case Type::REAL: real = rhs.real; break;
             case Type::STRING: new (&string) std::string(rhs.string); break;
             case Type::ARRAY: new (&array) unique_ptr<Array>(new Array(*rhs.array)); break;
-            case Type::OBJECT: new (&object) unique_ptr<Object>(new Object(*rhs.object)); break;
+            case Type::OBJECT: *this = *rhs.object; break;
         }
         
         return *this;
@@ -288,7 +290,7 @@ namespace json
         if (!isObject())
             *this = emptyObject;
         
-        return (*object)[key];
+        return *(*object)[key];
     }
     
     const Value& Value::operator[](const std::string& key) const
@@ -300,7 +302,7 @@ namespace json
         if (it == object->end())
             throw runtime_error("Json object, key '" + key + "' not found");
         
-        return it->second;
+        return *it->second;
     }
     
     Value Value::access(const std::string& key, const Value& alternative) const
