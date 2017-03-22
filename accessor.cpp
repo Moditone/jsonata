@@ -57,7 +57,7 @@ namespace json
     
     Value& Value::Accessor::value()
     {
-        return toArray ? *itArray : itObject->second;
+        return toArray ? **itArray : *itObject->second;
     }
     
 // --- ConstAccessor --- //
@@ -94,6 +94,6 @@ namespace json
     
     const Value& Value::ConstAccessor::value()
     {
-        return toArray ? *itArray : itObject->second;
+        return toArray ? **itArray : *itObject->second;
     }
 }
