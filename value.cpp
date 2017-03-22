@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <utility>
 
 #include "value.hpp"
 
@@ -34,7 +35,9 @@ namespace json
     Value::Value(long double number) { *this = number; }
     Value::Value(const std::string& string) { *this = string; }
     Value::Value(const Array& array) { *this = array; }
+    Value::Value(Array&& array) { *this = std::move(array); }
     Value::Value(const Object& object) { *this = object; }
+    Value::Value(Object&& object) { *this = std::move(object); }
 
 	Value::Value(const char* string)
 	{
@@ -91,21 +94,42 @@ namespace json
 	{
         destruct();
         type = Type::ARRAY;
-        new (&this->array) unique_ptr<Array>(new Array(array));
+        new (&this->array) Array();
+        this->array.reserve(array.size());
+        for (auto& item : array)
+            this->array.emplace_back(std::make_unique<Value>(*item));
         
 		return *this;
 	}
+    
+    Value& Value::operator=(Array&& array)
+    {
+        destruct();
+        type = Type::ARRAY;
+        new (&this->array) Array(std::move(array));
+        
+        return *this;
+    }
 
 	Value& Value::operator=(const Object& object)
 	{
         destruct();
         type = Type::OBJECT;
-        new (&this->object) unique_ptr<Object>(new Object);
+        new (&this->object) Object();
         for (auto& pair : object)
             this->object.emplace(pair.first, make_unique<Value>(*pair.second));
         
 		return *this;
 	}
+    
+    Value& Value::operator=(Object&& object)
+    {
+        destruct();
+        type = Type::OBJECT;
+        new (&this->object) Object(std::move(object));
+        
+        return *this;
+    }
     
     Value& Value::operator=(const Value& rhs)
     {
@@ -120,7 +144,7 @@ namespace json
             case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
             case Type::REAL: real = rhs.real; break;
             case Type::STRING: new (&string) std::string(rhs.string); break;
-            case Type::ARRAY: new (&array) unique_ptr<Array>(new Array(*rhs.array)); break;
+            case Type::ARRAY: *this = rhs.array; break;
             case Type::OBJECT: *this = rhs.object; break;
         }
         
@@ -140,12 +164,8 @@ namespace json
             case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
             case Type::REAL: real = rhs.real; break;
             case Type::STRING: new (&string) std::string(std::move(rhs.string)); break;
-            case Type::ARRAY:
-                new (&array) unique_ptr<Array>(std::move(rhs.array));
-                break;
-            case Type::OBJECT:
-                new (&object) Object(std::move(rhs.object));
-                break;
+            case Type::ARRAY: *this = std::move(rhs.array); break;
+            case Type::OBJECT: *this = std::move(rhs.object); break;
         }
         
         rhs = null;
@@ -236,7 +256,7 @@ namespace json
         if (!isArray())
             throw runtime_error("Json value is not an array, yet asArray() was called on it");
         
-        return *array;
+        return array;
     }
     
     const Value::Object& Value::asObject() const
@@ -252,7 +272,7 @@ namespace json
         if (!isArray())
             *this = emptyArray;
         
-        array->emplace_back(value);
+        array.emplace_back(make_unique<Value>(value));
     }
 
 	Value& Value::operator[](size_t index)
@@ -263,7 +283,7 @@ namespace json
         if (index >= size())
             throw runtime_error("Json array value, index " + to_string(index) + " out of bounds");
         
-        return array->at(index);
+        return *array.at(index);
     }
     
     const Value& Value::operator[](size_t index) const
@@ -274,7 +294,7 @@ namespace json
         if (index >= size())
             throw runtime_error("Json array, index " + to_string(index) + " out of bounds");
         
-        return array->at(index);
+        return *array.at(index);
     }
     
     Value Value::access(const size_t& index, const Value& alternative) const
@@ -316,7 +336,7 @@ namespace json
 	size_t Value::size() const
 	{
 		if (isArray())
-            return array->size();
+            return array.size();
         else if (isObject())
             return object.size();
         else
@@ -326,7 +346,7 @@ namespace json
 	bool Value::empty() const
 	{
 		if (isArray())
-            return array->empty();
+            return array.empty();
         else if (isObject())
             return object.empty();
         else
@@ -356,7 +376,7 @@ namespace json
     Value::Iterator Value::begin()
     {
     	if (isArray())
-            return array->begin();
+            return array.begin();
         else if (isObject())
             return object.begin();
         else
@@ -366,7 +386,7 @@ namespace json
     Value::ConstIterator Value::begin() const
     {
         if (isArray())
-            return array->cbegin();
+            return array.cbegin();
         else if (isObject())
             return object.cbegin();
         else
@@ -376,7 +396,7 @@ namespace json
     Value::ConstIterator Value::cbegin() const
     {
         if (isArray())
-            return array->cbegin();
+            return array.cbegin();
         else if (isObject())
             return object.cbegin();
         else
@@ -386,7 +406,7 @@ namespace json
     Value::Iterator Value::end()
     {
     	if (isArray())
-            return array->end();
+            return array.end();
         else if (isObject())
             return object.end();
         else
@@ -396,7 +416,7 @@ namespace json
     Value::ConstIterator Value::end() const
     {
         if (isArray())
-            return array->cend();
+            return array.cend();
         else if (isObject())
             return object.cend();
         else
@@ -406,7 +426,7 @@ namespace json
     Value::ConstIterator Value::cend() const
     {
         if (isArray())
-            return array->cend();
+            return array.cend();
         else if (isObject())
             return object.cend();
         else
@@ -427,7 +447,7 @@ namespace json
                 string.~basic_string();
                 break;
             case Type::ARRAY:
-                array.~unique_ptr<Array>();
+                array.~Array();
                 break;
             case Type::OBJECT:
                 object.~Object();

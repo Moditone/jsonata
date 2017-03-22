@@ -29,7 +29,7 @@ namespace json
         enum class Null;
         
         //! Convenience alias for Json arrays
-        using Array = std::vector<Value>;
+        using Array = std::vector<std::unique_ptr<Value>>;
         
         //! Convenience alias for Json objects
         using Object = std::map<std::string, std::unique_ptr<Value>>;
@@ -227,7 +227,9 @@ namespace json
 		Value(long double number); //!< Construct with a number value
 		Value(const std::string& string); //!< Construct a string value
 		Value(const Array& array); //!< Construct an array value
+        Value(Array&& array); //!< Construct an array value
 		Value(const Object& object); //!< Construct an object value
+        Value(Object&& object); //!< Construct an object value
 
 		//! Construct a string value
 		/*! @throw std::invalid_argument if the string is a nullptr */
@@ -241,10 +243,8 @@ namespace json
 
 	// Assignment
 
-		//! Assign a null value
+		// Assignment operators
 		Value& operator=(Null);
-        
-        //! Assign a boolean value
         Value& operator=(bool boolean);
 
 		//! Assign a new number value
@@ -284,18 +284,13 @@ namespace json
             return *this;
         }
 
-		//! Assign a new string value
-		/*! @throw std::invalid_argument if string is a nullptr */
+		// Assignment operators
 		Value& operator=(const char* string);
-
-		//! Assign a new string value
 		Value& operator=(const std::string& string);
-
-		//! Assign a new array value
 		Value& operator=(const Array& array);
-
-		//! Assign a new object value
+        Value& operator=(Array&& array);
 		Value& operator=(const Object& object);
+        Value& operator=(Object&& object);
         
         // Copy and move
         Value& operator=(const Value& rhs);
@@ -425,7 +420,7 @@ namespace json
             uint64_t unsignedInt;
             long double real;
             std::string string;
-            std::unique_ptr<Array> array;
+            Array array;
             Object object;
         };
 	};
