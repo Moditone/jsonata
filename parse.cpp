@@ -130,7 +130,7 @@ namespace json
             }
             
             // Append the array
-            array.emplace_back(parse(stream));
+            array.emplace_back(make_unique<Value>(parse(stream)));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, ']');
