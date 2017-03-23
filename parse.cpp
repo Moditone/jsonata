@@ -130,7 +130,7 @@ namespace json
             }
             
             // Append the array
-            array.emplace_back(make_unique<Value>(parse(stream)));
+            array.emplace_back(parse(stream));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, ']');
@@ -175,7 +175,7 @@ namespace json
                 throw runtime_error("Json expected a ':' after an object key");
                         
             // Parse the value
-            object.emplace(key, make_unique<Value>(parse(stream)));
+            object.emplace(key, parse(stream));
             
             // Skip possible whitespace
             skipWhitespaceAndCheckEof(stream, '}');
