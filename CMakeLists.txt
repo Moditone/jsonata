@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(Jsonata)
 
 # Add global definitions and include directories
-add_definitions(-std=c++14 -Wall)
+add_definitions(-std=c++14 -Wall -Werror)
 include_directories(/usr/local/include)
 
 # Create the target
