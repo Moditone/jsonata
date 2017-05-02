@@ -155,8 +155,8 @@ namespace json
 	bool Value::isBool() const { return type == Type::BOOLEAN; }
     bool Value::isNumber() const { return isInteger() || isReal(); }
     bool Value::isInteger() const { return isSignedInteger() || isUnsignedInteger(); }
-    bool Value::isSignedInteger() const { return type == Type::SIGNED; }
-    bool Value::isUnsignedInteger() const { return type == Type::UNSIGNED; }
+    bool Value::isSignedInteger() const { return type == Type::SIGNED || type == Type::UNSIGNED; }
+    bool Value::isUnsignedInteger() const { return type == Type::UNSIGNED || (type == Type::SIGNED && signedInt >= 0); }
     bool Value::isReal() const { return type == Type::REAL; }
 	bool Value::isString() const { return type == Type::STRING; }
 	bool Value::isArray() const { return type == Type::ARRAY; }
