@@ -42,7 +42,7 @@ namespace json
         {
             stringstream stream2;
             stream2 << fixed;
-            stream2.precision(8);
+            stream2.precision(realPrecision);
             stream2 << value.asReal();
             auto str = stream2.str();
             

@@ -37,6 +37,10 @@ namespace json
     public:
         //! Write a Json value to stream, lean and efficient
         void writeToStream(std::ostream& stream, const Value& value) const override;
+
+    public:
+        //! The precision for writing real numbers
+        std::size_t realPrecision = 10;
         
     protected:
         //! Write a Json string to stream
