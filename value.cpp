@@ -43,12 +43,36 @@ namespace json
     
     Value::Value(const Value& rhs)
     {
-        *this = rhs;
+        type = rhs.type;
+        switch (type)
+        {
+            case Type::NIL: break;
+            case Type::BOOLEAN: boolean = rhs.boolean; break;
+            case Type::SIGNED: signedInt = rhs.signedInt; break;
+            case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
+            case Type::REAL: real = rhs.real; break;
+            case Type::STRING: new (&string) std::string(rhs.string); break;
+            case Type::ARRAY: new (&array) unique_ptr<Array>(new Array(*rhs.array)); break;
+            case Type::OBJECT: new (&object) unique_ptr<Object>(new Object(*rhs.object)); break;
+        }
     }
     
     Value::Value(Value&& rhs)
     {
-        *this = move(rhs);
+        type = rhs.type;
+        switch (type)
+        {
+            case Type::NIL: break;
+            case Type::BOOLEAN: boolean = rhs.boolean; break;
+            case Type::SIGNED: signedInt = rhs.signedInt; break;
+            case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
+            case Type::REAL: real = rhs.real; break;
+            case Type::STRING: new (&string) std::string(move(rhs.string)); break;
+            case Type::ARRAY: new (&array) unique_ptr<Array>(move(rhs.array)); break;
+            case Type::OBJECT: new (&object) unique_ptr<Object>(move(rhs.object)); break;
+        }
+        
+        rhs = null;
     }
     
     Value::~Value()
@@ -138,12 +162,8 @@ namespace json
             case Type::UNSIGNED: unsignedInt = rhs.unsignedInt; break;
             case Type::REAL: real = rhs.real; break;
             case Type::STRING: new (&string) std::string(move(rhs.string)); break;
-            case Type::ARRAY:
-                new (&array) unique_ptr<Array>(move(rhs.array));
-                break;
-            case Type::OBJECT:
-                new (&object) unique_ptr<Object>(move(rhs.object));
-                break;
+            case Type::ARRAY: new (&array) unique_ptr<Array>(move(rhs.array)); break;
+            case Type::OBJECT: new (&object) unique_ptr<Object>(move(rhs.object)); break;
         }
         
         rhs = null;
