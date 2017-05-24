@@ -5,7 +5,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment ver
 project(Jsonata)
 
 # Add global definitions and include directories
-add_definitions(-std=c++14 -Wall -Werror)
+add_definitions(-std=c++14 -Wall -Werror -Wconversion)
 include_directories(/usr/local/include)
 
 # Create the target

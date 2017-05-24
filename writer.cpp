@@ -42,7 +42,7 @@ namespace json
         {
             stringstream stream2;
             stream2 << fixed;
-            stream2.precision(realPrecision);
+            stream2.precision(static_cast<long>(realPrecision));
             stream2 << value.asReal();
             auto str = stream2.str();
             
@@ -59,7 +59,7 @@ namespace json
             stream << '[';
             
             const auto size = value.size();
-            for (auto i = 0; i < size; ++i)
+            for (std::size_t i = 0; i < size; ++i)
             {
                 writeToStream(stream, value[i]);
                 if (i != size - 1)
@@ -72,7 +72,7 @@ namespace json
             
             const auto size = value.size();
             const auto keys = value.keys();
-            for (auto i = 0; i < size; ++i)
+            for (std::size_t i = 0; i < size; ++i)
             {
                 write(stream, keys[i]);
                 stream << ":";
@@ -123,7 +123,7 @@ namespace json
             ++indentation;
             
             const auto size = value.size();
-            for (auto i = 0; i < size; ++i)
+            for (std::size_t i = 0; i < size; ++i)
             {
                 writeIndentation(stream, indentation);
                 writeToStreamWithIndentation(stream, value[i], indentation);
@@ -149,7 +149,7 @@ namespace json
             
             const auto size = value.size();
             const auto keys = value.keys();
-            for (auto i = 0; i < size; ++i)
+            for (std::size_t i = 0; i < size; ++i)
             {
                 writeIndentation(stream, indentation);
                 write(stream, keys[i]);

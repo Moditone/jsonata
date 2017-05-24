@@ -37,13 +37,13 @@ namespace json
     bool expect(istream& stream, const string& expectation)
     {
         vector<char> reality(expectation.size());
-        auto numRead = stream.readsome(reality.data(), expectation.size());
+        long numRead = stream.readsome(reality.data(), static_cast<long>(expectation.size()));
         
-        if (expectation == string(reality.data(), numRead))
+        if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
             return true;
         
         for (auto i = numRead - 1; i >= 0; --i)
-            stream.putback(reality[i]);
+            stream.putback(reality[static_cast<std::size_t>(i)]);
         
         return false;
     }
@@ -55,18 +55,18 @@ namespace json
         if (stream.peek() == '-')
         {
             negative = true;
-            token += stream.get();
+            token += static_cast<char>(stream.get());
         }
         
         while (isdigit(stream.peek()))
-           token += stream.get();
+           token += static_cast<char>(stream.get());
         
         if (stream.peek() != '.')
             return negative ? Value(stoll(token)) : Value(stoull(token));
         
-        token += stream.get();
+        token += static_cast<char>(stream.get());
         while (isdigit(stream.peek()))
-            token += stream.get();
+            token += static_cast<char>(stream.get());
         
         return stold(token);
     }
@@ -93,7 +93,7 @@ namespace json
                     case 'r': string += '\r'; break;
                     case 't': string += '\t'; break;
                     case 'u':
-                        uint16_t codePoint;
+                        uint16_t codePoint = 0;
                         stream >> hex >> codePoint;
                         
                         static wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
@@ -102,7 +102,7 @@ namespace json
                         break;
                 }
             } else {
-                string += c;
+                string += static_cast<char>(c);
             }
             
             if (stream.eof())
