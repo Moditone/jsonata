@@ -41,10 +41,6 @@ namespace json
     public:
         //! The precision for writing real numbers
         std::size_t realPrecision = 10;
-        
-    protected:
-        //! Write a Json string to stream
-        void write(std::ostream& stream, const std::string& string) const;
     };
     
     //! Default pretty formatting settings that come with libjsonata

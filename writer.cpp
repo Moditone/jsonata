@@ -7,6 +7,7 @@
 //
 
 #include <cassert>
+#include <iomanip>
 #include <sstream>
 #include <string>
 
@@ -54,7 +55,7 @@ namespace json
             
             stream << str;
         } else if (value.isString()) {
-            write(stream, value.asString());
+            stream << std::quoted(value.asString());
         } else if (value.isArray()) {
             stream << '[';
             
@@ -74,8 +75,7 @@ namespace json
             const auto keys = value.keys();
             for (std::size_t i = 0; i < size; ++i)
             {
-                write(stream, keys[i]);
-                stream << ":";
+                stream << std::quoted(keys[i]) << ":";
                 writeToStream(stream, value[keys[i]]);
                 
                 if (i != size - 1)
@@ -84,22 +84,6 @@ namespace json
             
             stream << '}';
         }
-    }
-    
-    void LeanWriter::write(ostream& stream, const string& string) const
-    {
-        stream << '\"';
-        for (auto& c : string)
-        {
-            switch (c)
-            {
-                case '\"': stream << "\\\""; break;
-                case '\\': stream << "\\\\"; break;
-                default: stream << c; break;
-            }
-        }
-        
-        stream << '\"';
     }
     
 // --- PrettyWriter --- //
@@ -152,8 +136,7 @@ namespace json
             for (std::size_t i = 0; i < size; ++i)
             {
                 writeIndentation(stream, indentation);
-                write(stream, keys[i]);
-                stream << ": ";
+                stream << std::quoted(keys[i]) << ": ";
                 writeToStreamWithIndentation(stream, value[keys[i]], indentation);
                 
                 if (i != size - 1)
