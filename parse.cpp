@@ -171,6 +171,7 @@ namespace json
                 throw runtime_error("expected a '\"' to start an object key");
             
             const auto key = parseString(stream);
+            skipWhitespace(stream);
             if (stream.get() != ':')
                 throw runtime_error("Json expected a ':' after an object key");
                         
