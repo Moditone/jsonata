@@ -95,9 +95,14 @@ namespace json
                     case 'u':
                         uint16_t codePoint = 0;
                         stream >> hex >> codePoint;
-                        
-                        static wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
-                        string += converter.to_bytes(codePoint);
+
+#ifndef WIN32
+					static wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
+					string += converter.to_bytes(codePoint);
+#else
+					static wstring_convert<codecvt_utf8<wchar_t>, wchar_t> converter;
+					string += converter.to_bytes(codePoint);
+#endif
                         
                         break;
                 }
