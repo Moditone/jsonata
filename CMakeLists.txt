@@ -13,7 +13,7 @@ if(APPLE)
 	# Add global definitions and include directories
 	add_definitions(-std=c++14 -Wall -Werror -Wconversion)
 	include_directories(/usr/local/include)
-	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION jsonata)
+	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION include/jsonata)
 endif(APPLE)
 
 # Create the target
