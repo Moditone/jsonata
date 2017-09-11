@@ -5,7 +5,7 @@ project(Jsonata)
 
 if(WIN32)
 	add_definitions(/std:c++latest /Wall /WX-)
-	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION dsperados/jsonata)
+	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION moditone/jsonata)
 endif(WIN32)
 
 if(APPLE)
@@ -13,7 +13,7 @@ if(APPLE)
 	# Add global definitions and include directories
 	add_definitions(-std=c++14 -Wall -Werror -Wconversion)
 	include_directories(/usr/local/include)
-	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION include/jsonata)
+	install(FILES json.hpp parse.hpp value.hpp writer.hpp DESTINATION include/moditone/jsonata)
 endif(APPLE)
 
 # Create the target
