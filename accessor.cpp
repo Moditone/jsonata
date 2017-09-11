@@ -19,7 +19,7 @@ namespace json
     
     // Function calling explicit destructor, circumventing a bug in Clang
     // http://stackoverflow.com/questions/42646680/how-do-i-explicitly-call-the-destructor-of-std-iterators
-    template<class T>
+    template <typename T>
     void destroy_at(T* p)
     {
         p->~T();
@@ -41,10 +41,17 @@ namespace json
     
     Value::Accessor::~Accessor()
     {
+#ifdef __APPLE__
         if (toArray)
             destroy_at(&itArray);
         else
             destroy_at(&itObject);
+#else
+		if (toArray)
+			itArray.Array::iterator::~iterator();
+		else
+			itObject.Object::iterator::~iterator();
+#endif
     }
     
     const string& Value::Accessor::key()
@@ -78,10 +85,17 @@ namespace json
     
     Value::ConstAccessor::~ConstAccessor()
     {
+#ifdef __APPLE__
         if (toArray)
             destroy_at(&itArray);
         else
             destroy_at(&itObject);
+#else
+		if (toArray)
+			itArray.Array::const_iterator::~const_iterator();
+		else
+			itObject.Object::const_iterator::~const_iterator();
+#endif
     }
     
     const string& Value::ConstAccessor::key()

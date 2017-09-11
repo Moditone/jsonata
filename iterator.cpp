@@ -41,10 +41,17 @@ namespace json
     
     Value::Iterator::~Iterator()
     {
+#ifdef __APPLE__
         if (toArray)
             destroy_at(&itArray);
         else
             destroy_at(&itObject);
+#else
+		if (toArray)
+			itArray.Array::iterator::~iterator();
+		else
+			itObject.Object::iterator::~iterator();
+#endif
     }
 
 	Value::Iterator& Value::Iterator::operator++()
@@ -117,10 +124,17 @@ namespace json
     
     Value::ConstIterator::~ConstIterator()
     {
+#ifdef __APPLE__
         if (toArray)
             destroy_at(&itArray);
         else
             destroy_at(&itObject);
+#else
+		if (toArray)
+			itArray.Array::const_iterator::~const_iterator();
+		else
+			itObject.Object::const_iterator::~const_iterator();
+#endif
     }
     
     Value::ConstIterator& Value::ConstIterator::operator++()
