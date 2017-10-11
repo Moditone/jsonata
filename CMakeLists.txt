@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+if (APPLE)
+	# NEEDS TO BE DONE BEFORE project()
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
+endif (APPLE)
+
 # Create the project
 project(Jsonata)
 
@@ -9,7 +14,6 @@ if(WIN32)
 endif(WIN32)
 
 if(APPLE)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
 	# Add global definitions and include directories
 	add_definitions(-std=c++14 -Wall -Werror -Wconversion)
 	include_directories(/usr/local/include)
