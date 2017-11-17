@@ -213,7 +213,7 @@ namespace json
             return false;
         else if (expect(stream, "true"))
             return true;
-        else if (stream.peek() == '-' || isdigit(stream.peek()))
+        else if (stream.peek() == '-' || stream.peek() == '.' || isdigit(stream.peek()))
             return parseNumber(stream);
         
         switch (stream.peek())
