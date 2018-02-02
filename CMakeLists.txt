@@ -22,6 +22,7 @@ endif(APPLE)
 
 # Create the target
 add_library(Jsonata accessor.cpp iterator.cpp json.hpp parse.hpp parse.cpp value.hpp value.cpp writer.hpp writer.cpp)
+set_target_properties(Jsonata PROPERTIES DEBUG_POSTFIX -d)
 
 install(TARGETS Jsonata DESTINATION lib)
 
