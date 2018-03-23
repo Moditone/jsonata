@@ -20,27 +20,46 @@ using namespace std;
 
 namespace json
 {
-	void skipWhitespace(istream& stream)
+    struct State
+    {
+        std::size_t line = 1;
+        std::size_t character = 1;
+    };
+    
+	void skipWhitespace(std::istream& stream, State& state)
     {
         while (isspace(stream.peek()))
+        {
+            if (stream.peek() == '\n')
+            {
+                state.line += 1;
+                state.character = 1;
+            } else {
+                state.character += 1;
+            }
+            
             stream.ignore();
+        }
     }
     
-    void skipWhitespaceAndCheckEof(istream& stream, char expectation)
+    void skipWhitespaceAndCheckEof(std::istream& stream, char expectation, State& state)
     {
-        skipWhitespace(stream);
+        skipWhitespace(stream, state);
     
         if (!stream.good() || stream.eof())
             throw runtime_error("Json reached end-of-stream, but expected " + string(1, expectation) + " first");
     }
     
-    bool expect(istream& stream, const string& expectation)
+    bool expect(std::istream& stream, const std::string& expectation, State& state)
     {
         vector<char> reality(expectation.size());
         long numRead = stream.readsome(reality.data(), static_cast<long>(expectation.size()));
         
         if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
+        {
+            state.character += static_cast<std::size_t>(numRead);
             return true;
+        }
         
         for (auto i = numRead - 1; i >= 0; --i)
             stream.putback(reality[static_cast<std::size_t>(i)]);
@@ -48,7 +67,9 @@ namespace json
         return false;
     }
     
-    Value parseNumber(istream& stream)
+    Value parse(std::istream& stream, State& state);
+    
+    Value parseNumber(std::istream& stream, State& state)
     {
         bool negative = false;
         string token;
@@ -56,32 +77,42 @@ namespace json
         {
             negative = true;
             token += static_cast<char>(stream.get());
+            state.character += 1;
         }
         
         while (isdigit(stream.peek()))
+        {
            token += static_cast<char>(stream.get());
+            state.character += 1;
+        }
         
         if (stream.peek() != '.')
-            return negative ? Value(stoll(token)) : Value(stoull(token));
+            return negative ? Value(std::stoll(token)) : Value(std::stoull(token));
         
         token += static_cast<char>(stream.get());
+        state.character += 1;
         while (isdigit(stream.peek()))
+        {
             token += static_cast<char>(stream.get());
+            state.character += 1;
+        }
         
-        return stold(token);
+        return std::stold(token);
     }
     
-    string parseString(istream& stream)
+    std::string parseString(std::istream& stream, State& state)
     {
         assert(stream.peek() == '"');
         stream.ignore(); // "
+        state.character += 1;
         
-        string string;
+        std::string string;
         
         for (auto c = stream.get(); c != '"'; c = stream.get())
         {
             if (c == '\\')
             {
+                state.character += 1;
                 switch (stream.get())
                 {
                     case '\"': string += '\"'; break;
@@ -96,18 +127,22 @@ namespace json
                         uint16_t codePoint = 0;
                         stream >> hex >> codePoint;
 
+                        std::string bytes;
 #ifndef WIN32
-					static wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
-					string += converter.to_bytes(codePoint);
+                        static std::wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
+                        bytes = converter.to_bytes(codePoint);
 #else
-					static wstring_convert<codecvt_utf8<wchar_t>, wchar_t> converter;
-					string += converter.to_bytes(codePoint);
+                        static std::wstring_convert<codecvt_utf8<wchar_t>, wchar_t> converter;
+                        bytes = converter.to_bytes(codePoint);
+                        string += bytes;
 #endif
+                        state.character += bytes.size();
                         
                         break;
                 }
             } else {
                 string += static_cast<char>(c);
+                state.character += 1;
             }
             
             if (stream.eof())
@@ -117,36 +152,40 @@ namespace json
         return string;
     }
     
-    Value parseArray(istream& stream)
+    Value parseArray(std::istream& stream, State& state)
     {
         assert(stream.peek() == '[');
         stream.ignore(); // [
+        state.character += 1;
         
         Value::Array array;
         
         while (true)
         {
             // Make sure we eject in case of an empty array
-            skipWhitespaceAndCheckEof(stream, ']');
+            skipWhitespaceAndCheckEof(stream, ']', state);
             if (stream.peek() == ']')
             {
                 stream.ignore();
+                state.character += 1;
                 return array;
             }
             
             // Append the array
-            array.emplace_back(parse(stream));
+            array.emplace_back(parse(stream, state));
             
             // Skip possible whitespace
-            skipWhitespaceAndCheckEof(stream, ']');
+            skipWhitespaceAndCheckEof(stream, ']', state);
             
             switch (stream.peek())
             {
                 case ',':
                     stream.ignore();
+                    state.character += 1;
                     continue;
                 case ']':
                     stream.ignore();
+                    state.character += 1;
                     return array;
                 default:
                     throw runtime_error("Json expected either ',' or ']'");
@@ -154,20 +193,22 @@ namespace json
         }
     }
     
-    Value parseObject(istream& stream)
+    Value parseObject(std::istream& stream, State& state)
     {
         assert(stream.peek() == '{');
         stream.ignore(); // {
+        state.character += 1;
         
         Value::Object object;
         
         while (true)
         {
             // Make sure we eject in case of an empty object
-            skipWhitespaceAndCheckEof(stream, '}');
+            skipWhitespaceAndCheckEof(stream, '}', state);
             if (stream.peek() == '}')
             {
                 stream.ignore();
+                state.character += 1;
                 return object;
             }
             
@@ -175,64 +216,76 @@ namespace json
             if (stream.peek() != '"')
                 throw runtime_error("expected a '\"' to start an object key");
             
-            const auto key = parseString(stream);
-            skipWhitespace(stream);
+            const auto key = parseString(stream, state);
+            skipWhitespace(stream, state);
             if (stream.get() != ':')
                 throw runtime_error("Json expected a ':' after an object key");
+            state.character += 1;
                         
             // Parse the value
-            object.emplace(key, parse(stream));
+            object.emplace(key, parse(stream, state));
             
             // Skip possible whitespace
-            skipWhitespaceAndCheckEof(stream, '}');
+            skipWhitespaceAndCheckEof(stream, '}', state);
             
             switch (stream.peek())
             {
                 case ',':
                     stream.ignore();
+                    state.character += 1;
                     continue;
                 case '}':
                     stream.ignore();
+                    state.character += 1;
                     return object;
                 default:
                     throw runtime_error("Json expected either ',' or '}'");
             }
         }
     }
-
-	Value parse(istream& stream)
-	{
-		// Skip possible whitespace
-        skipWhitespace(stream);
+    
+    Value parse(std::istream& stream, State& state)
+    {
+        // Skip possible whitespace
+        skipWhitespace(stream, state);
         if (stream.eof())
             throw runtime_error("Json reached end-of-stream with an empty stream");
         
-        if (expect(stream, "null"))
+        if (expect(stream, "null", state))
             return Value::null;
-        else if (expect(stream, "false"))
+        else if (expect(stream, "false", state))
             return false;
-        else if (expect(stream, "true"))
+        else if (expect(stream, "true", state))
             return true;
         else if (stream.peek() == '-' || stream.peek() == '.' || isdigit(stream.peek()))
-            return parseNumber(stream);
+            return parseNumber(stream, state);
         
         switch (stream.peek())
         {
-            case '\"': return parseString(stream);
-            case '[': return parseArray(stream);
-            case '{': return parseObject(stream);
+            case '\"': return parseString(stream, state);
+            case '[': return parseArray(stream, state);
+            case '{': return parseObject(stream, state);
         }
         
         throw runtime_error("Json found unsupported character '" + string(1, stream.peek()) + "'");
+    }
+
+	Value parse(std::istream& stream)
+	{
+        State state;
+        state.line = 1;
+        state.character = 1;
+        
+        return parse(stream, state);
 	}
     
-    Value parse(const string& text)
+    Value parse(const std::string& text)
     {
         istringstream stream(text);
         return parse(stream);
     }
     
-    istream& operator>>(istream& stream, Value& value)
+    istream& operator>>(std::istream& stream, Value& value)
     {
         value = parse(stream);
         return stream;
