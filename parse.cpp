@@ -76,6 +76,8 @@ namespace json
         vector<char> reality(expectation.size());
         stream.read(reality.data(), static_cast<long>(expectation.size()));
         long numRead = stream.gcount();
+        if (numRead != expectation.size())
+            throw createError("expected '" + expectation + "' but reached end of file");
         
         if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
         {
