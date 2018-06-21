@@ -9,6 +9,7 @@
 #ifndef JSON_JSON_HPP
 #define JSON_JSON_HPP
 
+#include "error.hpp"
 #include "parse.hpp"
 #include "value.hpp"
 #include "writer.hpp"

@@ -14,34 +14,74 @@
 #include <stdexcept>
 #include <string>
 
+#include "error.hpp"
 #include "parse.hpp"
 
 using namespace std;
 
 namespace json
 {
-	void skipWhitespace(istream& stream)
+    class Parser
     {
-        while (isspace(stream.peek()))
-            stream.ignore();
+    public:
+        Value parse(std::istream& stream);
+        
+    private:
+        void skipWhitespace(std::istream& stream);
+        void skipWhitespaceAndCheckEof(std::istream& stream, char expectation);
+        bool expect(std::istream& stream, const std::string& expectation);
+        Value parseNumber(std::istream& stream);
+        std::string parseString(std::istream& stream);
+        Value parseArray(std::istream& stream);
+        Value parseObject(std::istream& stream);
+        
+        Error createError(const std::string& message);
+        
+    private:
+        std::size_t line = 1;
+        std::size_t character = 1;
+    };
+    
+    Error Parser::createError(const std::string& message)
+    {
+        return Error(line, character, message);
     }
     
-    void skipWhitespaceAndCheckEof(istream& stream, char expectation)
+    void Parser::skipWhitespace(std::istream& stream)
+    {
+        while (isspace(stream.peek()))
+        {
+            if (stream.peek() == '\n')
+            {
+                line += 1;
+                character = 1;
+            } else {
+                character += 1;
+            }
+            
+            stream.ignore();
+        }
+    }
+    
+    void Parser::skipWhitespaceAndCheckEof(std::istream& stream, char expectation)
     {
         skipWhitespace(stream);
     
         if (!stream.good() || stream.eof())
-            throw runtime_error("Json reached end-of-stream, but expected " + string(1, expectation) + " first");
+            throw createError("Json reached end-of-stream, but expected " + string(1, expectation) + " first");
     }
     
-    bool expect(istream& stream, const string& expectation)
+    bool Parser::expect(std::istream& stream, const std::string& expectation)
     {
         vector<char> reality(expectation.size());
         stream.read(reality.data(), static_cast<long>(expectation.size()));
         long numRead = stream.gcount();
         
         if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
+        {
+            character += static_cast<std::size_t>(numRead);
             return true;
+        }
         
         for (auto i = numRead - 1; i >= 0; --i)
             stream.putback(reality[static_cast<std::size_t>(i)]);
@@ -49,7 +89,7 @@ namespace json
         return false;
     }
     
-    Value parseNumber(istream& stream)
+    Value Parser::parseNumber(std::istream& stream)
     {
         bool negative = false;
         string token;
@@ -57,32 +97,42 @@ namespace json
         {
             negative = true;
             token += static_cast<char>(stream.get());
+            character += 1;
         }
         
         while (isdigit(stream.peek()))
-           token += static_cast<char>(stream.get());
+        {
+            token += static_cast<char>(stream.get());
+            character += 1;
+        }
         
         if (stream.peek() != '.')
-            return negative ? Value(stoll(token)) : Value(stoull(token));
+            return negative ? Value(std::stoll(token)) : Value(std::stoull(token));
         
         token += static_cast<char>(stream.get());
+        character += 1;
         while (isdigit(stream.peek()))
+        {
             token += static_cast<char>(stream.get());
+            character += 1;
+        }
         
-        return stold(token);
+        return std::stold(token);
     }
     
-    string parseString(istream& stream)
+    std::string Parser::parseString(std::istream& stream)
     {
         assert(stream.peek() == '"');
         stream.ignore(); // "
+        character += 1;
         
-        string string;
+        std::string string;
         
         for (auto c = stream.get(); c != '"'; c = stream.get())
         {
             if (c == '\\')
             {
+                character += 1;
                 switch (stream.get())
                 {
                     case '\"': string += '\"'; break;
@@ -97,31 +147,36 @@ namespace json
                         uint16_t codePoint = 0;
                         stream >> hex >> codePoint;
 
+                        std::string bytes;
 #ifndef WIN32
-					static wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
-					string += converter.to_bytes(codePoint);
+                        static std::wstring_convert<codecvt_utf8<char32_t>, char32_t> converter;
+                        bytes = converter.to_bytes(codePoint);
 #else
-					static wstring_convert<codecvt_utf8<wchar_t>, wchar_t> converter;
-					string += converter.to_bytes(codePoint);
+                        static std::wstring_convert<codecvt_utf8<wchar_t>, wchar_t> converter;
+                        bytes = converter.to_bytes(codePoint);
+                        string += bytes;
 #endif
+                        character += bytes.size();
                         
                         break;
                 }
             } else {
                 string += static_cast<char>(c);
+                character += 1;
             }
             
             if (stream.eof())
-                throw runtime_error("Json reached end-of-stream, but expected '\"' first");
+                throw createError("Json reached end-of-stream, but expected '\"' first");
         }
         
         return string;
     }
     
-    Value parseArray(istream& stream)
+    Value Parser::parseArray(std::istream& stream)
     {
         assert(stream.peek() == '[');
         stream.ignore(); // [
+        character += 1;
         
         Value::Array array;
         
@@ -132,6 +187,7 @@ namespace json
             if (stream.peek() == ']')
             {
                 stream.ignore();
+                character += 1;
                 return array;
             }
             
@@ -145,20 +201,23 @@ namespace json
             {
                 case ',':
                     stream.ignore();
+                    character += 1;
                     continue;
                 case ']':
                     stream.ignore();
+                    character += 1;
                     return array;
                 default:
-                    throw runtime_error("Json expected either ',' or ']'");
+                    throw createError("Json expected either ',' or ']'");
             }
         }
     }
     
-    Value parseObject(istream& stream)
+    Value Parser::parseObject(std::istream& stream)
     {
         assert(stream.peek() == '{');
         stream.ignore(); // {
+        character += 1;
         
         Value::Object object;
         
@@ -169,17 +228,19 @@ namespace json
             if (stream.peek() == '}')
             {
                 stream.ignore();
+                character += 1;
                 return object;
             }
             
             // Read the key
             if (stream.peek() != '"')
-                throw runtime_error("expected a '\"' to start an object key");
+                throw createError("expected a '\"' to start an object key");
             
             const auto key = parseString(stream);
             skipWhitespace(stream);
             if (stream.get() != ':')
-                throw runtime_error("Json expected a ':' after an object key");
+                throw createError("Json expected a ':' after an object key");
+            character += 1;
                         
             // Parse the value
             object.emplace(key, parse(stream));
@@ -191,22 +252,24 @@ namespace json
             {
                 case ',':
                     stream.ignore();
+                    character += 1;
                     continue;
                 case '}':
                     stream.ignore();
+                    character += 1;
                     return object;
                 default:
-                    throw runtime_error("Json expected either ',' or '}'");
+                    throw createError("Json expected either ',' or '}'");
             }
         }
     }
-
-	Value parse(istream& stream)
-	{
-		// Skip possible whitespace
+    
+    Value Parser::parse(std::istream& stream)
+    {
+        // Skip possible whitespace
         skipWhitespace(stream);
         if (stream.eof())
-            throw runtime_error("Json reached end-of-stream with an empty stream");
+            throw createError("Json reached end-of-stream with an empty stream");
         
         if (expect(stream, "null"))
             return Value::null;
@@ -224,16 +287,21 @@ namespace json
             case '{': return parseObject(stream);
         }
         
-        throw runtime_error("Json found unsupported character '" + string(1, stream.peek()) + "'");
+        throw createError("Json found unsupported character '" + std::string(1, stream.peek()) + "'");
+    }
+
+	Value parse(std::istream& stream)
+	{
+        return Parser().parse(stream);
 	}
     
-    Value parse(const string& text)
+    Value parse(const std::string& text)
     {
         istringstream stream(text);
         return parse(stream);
     }
     
-    istream& operator>>(istream& stream, Value& value)
+    istream& operator>>(std::istream& stream, Value& value)
     {
         value = parse(stream);
         return stream;
