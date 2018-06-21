@@ -74,7 +74,8 @@ namespace json
     bool Parser::expect(std::istream& stream, const std::string& expectation)
     {
         vector<char> reality(expectation.size());
-        long numRead = stream.readsome(reality.data(), static_cast<long>(expectation.size()));
+        stream.read(reality.data(), static_cast<long>(expectation.size()));
+        long numRead = stream.gcount();
         
         if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
         {
