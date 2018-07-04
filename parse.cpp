@@ -73,20 +73,24 @@ namespace json
     
     bool Parser::expect(std::istream& stream, const std::string& expectation)
     {
+        assert(stream.good());
+        
         vector<char> reality(expectation.size());
         stream.read(reality.data(), static_cast<long>(expectation.size()));
         long numRead = stream.gcount();
-        if (numRead != expectation.size())
-            throw createError("expected '" + expectation + "' but reached end of file");
-        
-        if (expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
+        if (numRead == expectation.size() && expectation == string(reality.data(), static_cast<unsigned long>(numRead)))
         {
             character += static_cast<std::size_t>(numRead);
             return true;
         }
         
+        if (stream.eof())
+            stream.clear();
+        
         for (auto i = numRead - 1; i >= 0; --i)
             stream.putback(reality[static_cast<std::size_t>(i)]);
+        
+        assert(stream.good());
         
         return false;
     }
@@ -273,13 +277,14 @@ namespace json
         if (stream.eof())
             throw createError("Json reached end-of-stream with an empty stream");
         
+        const auto peek = stream.peek();
         if (expect(stream, "null"))
             return Value::null;
         else if (expect(stream, "false"))
             return false;
         else if (expect(stream, "true"))
             return true;
-        else if (stream.peek() == '-' || stream.peek() == '.' || isdigit(stream.peek()))
+        else if (peek == '-' || stream.peek() == '.' || isdigit(stream.peek()))
             return parseNumber(stream);
         
         switch (stream.peek())
