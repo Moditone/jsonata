@@ -31,6 +31,7 @@ namespace json
         void skipWhitespaceAndCheckEof(std::istream& stream, char expectation);
         bool expect(std::istream& stream, const std::string& expectation);
         Value parseNumber(std::istream& stream);
+        std::string parseDigitString(std::istream& stream);
         std::string parseString(std::istream& stream);
         Value parseArray(std::istream& stream);
         Value parseObject(std::istream& stream);
@@ -106,24 +107,43 @@ namespace json
             character += 1;
         }
         
-        while (isdigit(stream.peek()))
-        {
-            token += static_cast<char>(stream.get());
-            character += 1;
-        }
+        token += parseDigitString(stream);
         
         if (stream.peek() != '.')
             return negative ? Value(std::stoll(token)) : Value(std::stoull(token));
         
         token += static_cast<char>(stream.get());
         character += 1;
+        token += parseDigitString(stream);
+        
+        if (stream.peek() == 'e' || stream.peek() == 'E')
+        {
+            token += static_cast<char>(stream.get());
+            character += 1;
+            
+            if (stream.peek() == '-' || stream.peek() == '+')
+            {
+                token += static_cast<char>(stream.get());
+                character += 1;
+            }
+            
+            token += parseDigitString(stream);
+        }
+        
+        return std::stold(token);
+    }
+    
+    std::string Parser::parseDigitString(std::istream& stream)
+    {
+        std::string token;
+        
         while (isdigit(stream.peek()))
         {
             token += static_cast<char>(stream.get());
             character += 1;
         }
         
-        return std::stold(token);
+        return token;
     }
     
     std::string Parser::parseString(std::istream& stream)
