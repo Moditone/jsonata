@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace json
@@ -225,7 +226,8 @@ namespace json
 		Value(long long unsigned int number); //!< Construct with a number value
 		Value(double number); //!< Construct with a number value
 		Value(long double number); //!< Construct with a number value
-		Value(const std::string& string); //!< Construct a string value
+        Value(const std::string& string); //!< Construct a string value
+		Value(std::string_view string); //!< Construct a string value
 		Value(const Array& array); //!< Construct an array value
 		Value(const Object& object); //!< Construct an object value
 
@@ -290,6 +292,9 @@ namespace json
 
 		//! Assign a new string value
 		Value& operator=(const std::string& string);
+        
+        //! Assign a new string value
+        Value& operator=(std::string_view string);
 
 		//! Assign a new array value
 		Value& operator=(const Array& array);
@@ -359,13 +364,16 @@ namespace json
         //! Access an element of the value as object, or return an alternative if the index wasn't found
         Value access(const std::size_t& index, const Value& alternative) const;
         
+        //! Sets one of the elements as object
+        void insert(std::string_view key, const Value& value);
+        
         //! Access an element of the value as object
         /*! Changes the value into an object if it wasn't */
-        Value& operator[](const std::string& key);
+        Value& operator[](std::string_view key);
         
         //! Access an element of the value as object, read-only
         /*! @throw std::runtime_error if the value is not an object */
-        const Value& operator[](const std::string& key) const;
+        const Value& operator[](std::string_view key) const;
         
         //! Access an element of the value as object, or return an alternative if the key wasn't found
         Value access(const std::string& key, const Value& alternative) const;

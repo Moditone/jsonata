@@ -33,6 +33,7 @@ namespace json
 	Value::Value(double number) { *this = number; }
     Value::Value(long double number) { *this = number; }
     Value::Value(const std::string& string) { *this = string; }
+    Value::Value(std::string_view string) { *this = string; }
     Value::Value(const Array& array) { *this = array; }
     Value::Value(const Object& object) { *this = object; }
 
@@ -110,6 +111,15 @@ namespace json
         
 		return *this;
 	}
+    
+    Value& Value::operator=(std::string_view string)
+    {
+        destruct();
+        type = Type::STRING;
+        new (&this->string) std::string(string);
+        
+        return *this;
+    }
 
 	Value& Value::operator=(const Array& array)
 	{
@@ -303,22 +313,30 @@ namespace json
         return (*this)[index];
     }
     
-    Value& Value::operator[](const std::string& key)
+    void Value::insert(std::string_view key, const Value& value)
     {
         if (!isObject())
             *this = emptyObject;
         
-        return (*object)[key];
+        (*object)[std::string(key)] = value;
     }
     
-    const Value& Value::operator[](const std::string& key) const
+    Value& Value::operator[](std::string_view key)
+    {
+        if (!isObject())
+            *this = emptyObject;
+        
+        return (*object)[std::string(key)];
+    }
+    
+    const Value& Value::operator[](std::string_view key) const
     {
         if (!isObject())
             throw runtime_error("Json value is not an object, but tried to call operator[]() on it");
         
-        auto it = object->find(key);
+        auto it = object->find(std::string(key));
         if (it == object->end())
-            throw runtime_error("Json object, key '" + key + "' not found");
+            throw runtime_error("Json object, key '" + std::string(key) + "' not found");
         
         return it->second;
     }

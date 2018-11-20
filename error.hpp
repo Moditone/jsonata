@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace json
 {
@@ -18,7 +19,7 @@ namespace json
         public std::runtime_error
     {
     public:
-        Error(std::size_t line, std::size_t character, const std::string& message);
+        Error(std::size_t line, std::size_t character, std::string_view message);
         
         std::size_t getLine() const;
         std::size_t getCharacter() const;
