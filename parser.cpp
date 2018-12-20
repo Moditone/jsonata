@@ -23,6 +23,21 @@ namespace json
         return parse(lexer.getNextToken());
     }
     
+    Value Parser::parse(const Token& token)
+    {
+        switch (token.type)
+        {
+            case Token::Type::LEFT_ACCOLADE: return parseObject();
+            case Token::Type::LEFT_SQUARE_BRACKET: return parseArray();
+            case Token::Type::STRING: return token.lexeme;
+            case Token::Type::NUMBER: return parseNumber(token.lexeme);
+            case Token::Type::BOOL_TRUE: return true;
+            case Token::Type::BOOL_FALSE: return false;
+            case Token::Type::NIL: return json::Value::null;
+            default: throw std::runtime_error("Unexpected token");
+        }
+    }
+    
     Value Parser::parseObject()
     {
         auto object = json::Value::emptyObject;
@@ -49,24 +64,12 @@ namespace json
                 throw std::runtime_error("Object fields must be seperated by ,");
             
             token = lexer.getNextToken();
+            
+            if (acceptCommaAfterLastEntry && token.type == Token::Type::RIGHT_ACCOLADE)
+                break;
         }
         
         return object;
-    }
-    
-    Value Parser::parse(const Token& token)
-    {
-        switch (token.type)
-        {
-            case Token::Type::LEFT_ACCOLADE: return parseObject();
-            case Token::Type::LEFT_SQUARE_BRACKET: return parseArray();
-            case Token::Type::STRING: return token.lexeme;
-            case Token::Type::NUMBER: return parseNumber(token.lexeme);
-            case Token::Type::BOOL_TRUE: return true;
-            case Token::Type::BOOL_FALSE: return false;
-            case Token::Type::NIL: return json::Value::null;
-            default: throw std::runtime_error("Unexpected token");
-        }
     }
     
     Value Parser::parseArray()
@@ -88,6 +91,9 @@ namespace json
                 throw std::runtime_error("Array fields must be seperated by ,");
             
             token = lexer.getNextToken();
+            
+            if (acceptCommaAfterLastEntry && token.type == Token::Type::RIGHT_SQUARE_BRACKET)
+                break;
         }
         
         return array;

@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cstddef>
-
 #include <istream>
 #include <string_view>
 
@@ -21,19 +20,26 @@ namespace json
     public:
         Lexer(std::istream& stream);
         
-        Token getNextToken();
+        [[nodiscard]] Token getNextToken();
         
     private:
         void consumeWhitespace();
-        Token consumeNumber();
-        Token consumeIdentifier();
-        Token consumeString();
-        std::string consumeUtf32CodePoint();
+        [[nodiscard]] Token consumeNumber();
+        [[nodiscard]] Token consumeIdentifier();
+        [[nodiscard]] Token consumeString();
+        [[nodiscard]] std::string consumeUtf32CodePoint();
+        
+        [[nodiscard]] char peek();
+        [[nodiscard]] char get();
+        void ignore();
+        
+        [[nodiscard]] Token createToken(Token::Type type, std::string_view lexeme) const;
+        [[nodiscard]] Token createToken(Token::Type type, char c) const;
         
     private:
         std::istream& stream;
         
-        std::size_t line = 1;
-        std::size_t character = 1;
+        std::size_t line = 0;
+        std::size_t character = 0;
     };
 }

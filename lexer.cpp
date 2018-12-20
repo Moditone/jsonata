@@ -22,19 +22,19 @@ namespace json
     
     Token Lexer::getNextToken()
     {
-        while (std::istream::traits_type::not_eof(stream.peek()))
+        while (std::istream::traits_type::not_eof(peek()))
         {
             consumeWhitespace();
             
-            const auto c = stream.peek();
+            const auto c = peek();
             switch (c)
             {
-                case '{': return {Token::Type::LEFT_ACCOLADE, std::string(1, stream.get())};
-                case '}': return {Token::Type::RIGHT_ACCOLADE, std::string(1, stream.get())};
-                case '[': return {Token::Type::LEFT_SQUARE_BRACKET, std::string(1, stream.get())};
-                case ']': return {Token::Type::RIGHT_SQUARE_BRACKET, std::string(1, stream.get())};
-                case ':': return {Token::Type::COLON, std::string(1, stream.get())};
-                case ',': return {Token::Type::COMMA, std::string(1, stream.get())};
+                case '{': return createToken(Token::Type::LEFT_ACCOLADE, get());
+                case '}': return createToken(Token::Type::RIGHT_ACCOLADE, get());
+                case '[': return createToken(Token::Type::LEFT_SQUARE_BRACKET, get());
+                case ']': return createToken(Token::Type::RIGHT_SQUARE_BRACKET, get());
+                case ':': return createToken(Token::Type::COLON, get());
+                case ',': return createToken(Token::Type::COMMA, get());
                 case '\"': return consumeString();
                 case '-': return consumeNumber();
                 default: break;
@@ -46,69 +46,61 @@ namespace json
                 return consumeIdentifier();
         }
         
-        return {Token::Type::END_OF_FILE, ""};
+        return createToken(Token::Type::END_OF_FILE, "");
     }
     
     void Lexer::consumeWhitespace()
     {
         while (true)
         {
-            const auto p = stream.peek();
+            const auto p = peek();
             if (stream.eof())
                 break;
             
             if (!std::isspace(p))
                 break;
             
-            if (p == '\n')
-            {
-                line += 1;
-                character = 1;
-            } else {
-                character += 1;
-            }
-            
-            stream.ignore();
+            ignore();
         }
     }
     
     Token Lexer::consumeNumber()
     {
-        assert(std::istream::traits_type::not_eof(stream.peek()));
+        assert(std::istream::traits_type::not_eof(peek()));
         
         std::string lexeme;
-        if (stream.peek() == '-')
-            lexeme += static_cast<char>(stream.get());
+        if (peek() == '-')
+            lexeme += get();
         
-        while (std::istream::traits_type::not_eof(stream.peek()) && std::isdigit(stream.peek()))
+        while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
         {
-            lexeme += static_cast<char>(stream.get());
+            lexeme += get();
         }
         
-        if (std::istream::traits_type::not_eof(stream.peek()) && stream.peek() == '.')
+        if (std::istream::traits_type::not_eof(peek()) && peek() == '.')
         {
-            lexeme += static_cast<char>(stream.get());
+            lexeme += get();
             
-            while (std::istream::traits_type::not_eof(stream.peek()) && std::isdigit(stream.peek()))
+            while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
             {
-                lexeme += static_cast<char>(stream.get());
+                lexeme += get();
             }
         }
         
-        if (std::istream::traits_type::not_eof(stream.peek()) && (stream.peek() == 'e' || stream.peek() == 'E'))
+        if (std::istream::traits_type::not_eof(peek()) && (peek() == 'e' || peek() == 'E'))
         {
-            lexeme += static_cast<char>(stream.get());
+            lexeme += get();
             
-            if (std::istream::traits_type::not_eof(stream.peek()) && (stream.peek() == '+' || stream.peek() == '-'))
-                lexeme += static_cast<char>(stream.get());
+            if (std::istream::traits_type::not_eof(peek()) && (peek() == '+' || peek() == '-'))
+                lexeme += get();
             
-            while (std::istream::traits_type::not_eof(stream.peek()) && std::isdigit(stream.peek()))
+            while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
             {
-                lexeme += static_cast<char>(stream.get());
+                lexeme += get();
             }
         }
         
-        return {Token::Type::NUMBER, lexeme};
+        return createToken(Token::Type::NUMBER, lexeme);
     }
     
     Token Lexer::consumeIdentifier()
@@ -116,44 +108,44 @@ namespace json
         std::string lexeme;
         while (true)
         {
-            const auto peek = stream.peek();
-            if (!std::istream::traits_type::not_eof(peek) || !std::isalpha(static_cast<char>(peek)))
+            const auto p = peek();
+            if (!std::istream::traits_type::not_eof(p) || !std::isalpha(static_cast<char>(p)))
                 break;
             
-            lexeme += static_cast<char>(stream.get());
+            lexeme += get();
         
             if (lexeme == "true")
-                return {Token::Type::BOOL_TRUE, lexeme};
+                return createToken(Token::Type::BOOL_TRUE, lexeme);
             else if (lexeme == "false")
-                return {Token::Type::BOOL_FALSE, lexeme};
+                return createToken(Token::Type::BOOL_FALSE, lexeme);
             else if (lexeme == "null")
-                return {Token::Type::NIL, lexeme};
+                return createToken(Token::Type::NIL, lexeme);
         }
         
-        return {Token::Type::UNKNOWN, lexeme};
+        return createToken(Token::Type::UNKNOWN, lexeme);
     }
     
     Token Lexer::consumeString()
     {
-        assert(stream.peek() == '"');
-        stream.ignore();
+        assert(peek() == '"');
+        ignore();
         
         std::string lexeme;
         while (true)
         {
-            const auto p = stream.peek();
+            const auto p = peek();
             if (!stream.good())
                 break;
             
             if (p == '\"')
             {
-                stream.ignore();
+                ignore();
                 break;
             }
             else if (p == '\\')
             {
-                stream.ignore();
-                const auto c = stream.get();
+                ignore();
+                const auto c = get();
                 if (!stream.good())
                     break;
                 
@@ -177,10 +169,10 @@ namespace json
                 continue;
             }
             
-            lexeme += static_cast<char>(stream.get());
+            lexeme += get();
         }
         
-        return {Token::Type::STRING, lexeme};
+        return createToken(Token::Type::STRING, lexeme);
     }
     
     std::string Lexer::consumeUtf32CodePoint()
@@ -195,5 +187,42 @@ namespace json
 #endif
         
         return converter.to_bytes(codePoint);
+    }
+    
+    char Lexer::peek()
+    {
+        return static_cast<char>(stream.peek());
+    }
+    
+    char Lexer::get()
+    {
+        auto c = static_cast<char>(stream.get());
+        
+        if (c == '\n')
+        {
+            line += 1;
+            character = 0;
+        } else {
+            character += 1;
+        }
+        
+        return c;
+    }
+    
+    void Lexer::ignore()
+    {
+        // Call get, because we don't actually want to ignore but
+        // increment the line or character in case of certain values
+        [[maybe_unused]] const auto c = get();
+    }
+    
+    Token Lexer::createToken(Token::Type type, std::string_view lexeme) const
+    {
+        return {type, lexeme, line, character - lexeme.size()};
+    }
+    
+    Token Lexer::createToken(Token::Type type, char c) const
+    {
+        return createToken(type, std::string(1, c));
     }
 }

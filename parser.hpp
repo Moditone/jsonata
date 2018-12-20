@@ -21,13 +21,19 @@ namespace json
     public:
         Parser(Lexer& lexer);
         
-        Value parse();
+        [[nodiscard]] Value parse();
+        
+    public:
+        //! Do we accept a comma after the last entry of an object or array?
+        /*! Technically this is not correct Json, but happens often with copy/paste json
+            and there's no harm in accepting this. */
+        bool acceptCommaAfterLastEntry = true;
         
     private:
-        Value parse(const Token& token);
-        Value parseObject();
-        Value parseArray();
-        Value parseNumber(std::string_view lexeme);
+        [[nodiscard]] Value parse(const Token& token);
+        [[nodiscard]] Value parseObject();
+        [[nodiscard]] Value parseArray();
+        [[nodiscard]] Value parseNumber(std::string_view lexeme);
         
     private:
         Lexer& lexer;

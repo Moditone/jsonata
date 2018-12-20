@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 namespace json
 {
@@ -34,14 +35,18 @@ namespace json
     public:
         Token() : type(Type::END_OF_FILE) { }
         
-        Token(Type type, const std::string& lexeme) :
+        Token(Type type, std::string_view lexeme, std::size_t line, std::size_t character) :
             type(type),
-            lexeme(lexeme)
+            lexeme(lexeme),
+            line(line),
+            character(character)
         {
             
         }
         
     public:
         std::string lexeme;
+        std::size_t line = 0;
+        std::size_t character = 0;
     };
 }
