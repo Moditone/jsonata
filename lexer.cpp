@@ -85,11 +85,7 @@ namespace json
     {
         while (true)
         {
-            const auto p = peek();
-            if (stream.eof())
-                break;
-            
-            if (!std::isspace(p))
+            if (const auto p = peek(); stream.eof() || !std::isspace(p))
                 break;
             
             ignore();
@@ -106,17 +102,17 @@ namespace json
         
         lexeme += consumeDigitString();
         
-        if (std::istream::traits_type::not_eof(peek()) && peek() == '.')
+        if (const auto p = peek(); stream.good() && p == '.')
         {
             lexeme += get();
             lexeme += consumeDigitString();
         }
         
-        if (std::istream::traits_type::not_eof(peek()) && (peek() == 'e' || peek() == 'E'))
+        if (const auto p = peek(); stream.good() && (p == 'e' || p == 'E'))
         {
             lexeme += get();
             
-            if (std::istream::traits_type::not_eof(peek()) && (peek() == '+' || peek() == '-'))
+            if (const auto p = peek(); stream.good() && (p == '+' || p == '-'))
                 lexeme += get();
             
             lexeme += consumeDigitString();
@@ -131,8 +127,7 @@ namespace json
         
         while (true)
         {
-            const auto p = peek();
-            if (!stream.good() || !std::isdigit(p))
+            if (const auto p = peek(); !stream.good() || !std::isdigit(p))
                 break;
             
             string += get();
@@ -146,8 +141,7 @@ namespace json
         std::string lexeme;
         while (true)
         {
-            const auto p = peek();
-            if (!std::istream::traits_type::not_eof(p) || !std::isalpha(static_cast<char>(p)))
+            if (const auto p = peek(); !stream.good() || !std::isalpha(p))
                 break;
             
             lexeme += get();
@@ -183,6 +177,7 @@ namespace json
             else if (p == '\\')
             {
                 ignore();
+                
                 const auto c = get();
                 if (!stream.good())
                     break;
@@ -200,7 +195,7 @@ namespace json
                     case 'u': lexeme += consumeUtf32CodePoint(); break;
                     default:
                         lexeme += '\\';
-                        lexeme += static_cast<char>(c);
+                        lexeme += c;
                         break;
                 }
                 
