@@ -24,7 +24,7 @@ namespace json
     {
         while (std::istream::traits_type::not_eof(peek()))
         {
-            consumeWhitespace();
+            consumeWhitespaceAndComments();
             
             const auto c = peek();
             switch (c)
@@ -47,6 +47,20 @@ namespace json
         }
         
         return createToken(Token::Type::END_OF_FILE, "");
+    }
+    
+    void Lexer::consumeWhitespaceAndComments()
+    {
+        consumeWhitespace();
+        
+        if (peek() == '#')
+        {
+            ignore();
+            while (get() != '\n')
+                ignore();
+            
+            consumeWhitespaceAndComments();
+        }
     }
     
     void Lexer::consumeWhitespace()

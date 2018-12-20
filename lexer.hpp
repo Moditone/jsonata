@@ -22,8 +22,14 @@ namespace json
         
         [[nodiscard]] Token getNextToken();
         
+    public:
+        //! Do we accept comments, even though they are not part of the specification?
+        bool acceptComments = true;
+        
     private:
+        void consumeWhitespaceAndComments();
         void consumeWhitespace();
+        
         [[nodiscard]] Token consumeNumber();
         [[nodiscard]] Token consumeIdentifier();
         [[nodiscard]] Token consumeString();
