@@ -6,6 +6,7 @@
 //  Licensed under the BSD 3-clause license.
 //
 
+#include <memory>
 #include <stdexcept>
 
 #include "value.hpp"
@@ -16,14 +17,6 @@ namespace json
 {
     
 // --- Iterator --- //
-    
-    // Function calling explicit destructor, circumventing a bug in Clang
-    // http://stackoverflow.com/questions/42646680/how-do-i-explicitly-call-the-destructor-of-std-iterators
-    template<class T>
-    void destroy_at(T* p)
-    {
-        p->~T();
-    }
     
 	Value::Iterator::Iterator(Array::iterator iterator) :
         toArray(true),
@@ -41,17 +34,10 @@ namespace json
     
     Value::Iterator::~Iterator()
     {
-#ifdef __APPLE__
         if (toArray)
-            destroy_at(&itArray);
+            std::destroy_at(&itArray);
         else
-            destroy_at(&itObject);
-#else
-		if (toArray)
-			itArray.Array::iterator::~iterator();
-		else
-			itObject.Object::iterator::~iterator();
-#endif
+            std::destroy_at(&itObject);
     }
 
 	Value::Iterator& Value::Iterator::operator++()
@@ -124,17 +110,10 @@ namespace json
     
     Value::ConstIterator::~ConstIterator()
     {
-#ifdef __APPLE__
         if (toArray)
-            destroy_at(&itArray);
+            std::destroy_at(&itArray);
         else
-            destroy_at(&itObject);
-#else
-		if (toArray)
-			itArray.Array::const_iterator::~const_iterator();
-		else
-			itObject.Object::const_iterator::~const_iterator();
-#endif
+            std::destroy_at(&itObject);
     }
     
     Value::ConstIterator& Value::ConstIterator::operator++()

@@ -32,6 +32,7 @@ namespace json
         void consumeWhitespace();
         
         [[nodiscard]] Token consumeNumber();
+        [[nodiscard]] std::string consumeDigitString();
         [[nodiscard]] Token consumeIdentifier();
         [[nodiscard]] Token consumeString();
         [[nodiscard]] std::string consumeUtf32CodePoint();

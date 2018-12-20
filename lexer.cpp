@@ -6,6 +6,7 @@
 //
 
 #include <array>
+#include <cassert>
 #include <codecvt>
 #include <cstdint>
 #include <locale>
@@ -97,25 +98,18 @@ namespace json
     
     Token Lexer::consumeNumber()
     {
-        assert(std::istream::traits_type::not_eof(peek()));
+        assert(stream.good());
         
         std::string lexeme;
         if (peek() == '-')
             lexeme += get();
         
-        while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
-        {
-            lexeme += get();
-        }
+        lexeme += consumeDigitString();
         
         if (std::istream::traits_type::not_eof(peek()) && peek() == '.')
         {
             lexeme += get();
-            
-            while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
-            {
-                lexeme += get();
-            }
+            lexeme += consumeDigitString();
         }
         
         if (std::istream::traits_type::not_eof(peek()) && (peek() == 'e' || peek() == 'E'))
@@ -125,13 +119,26 @@ namespace json
             if (std::istream::traits_type::not_eof(peek()) && (peek() == '+' || peek() == '-'))
                 lexeme += get();
             
-            while (std::istream::traits_type::not_eof(peek()) && std::isdigit(peek()))
-            {
-                lexeme += get();
-            }
+            lexeme += consumeDigitString();
         }
         
         return createToken(Token::Type::NUMBER, lexeme);
+    }
+    
+    std::string Lexer::consumeDigitString()
+    {
+        std::string string;
+        
+        while (true)
+        {
+            const auto p = peek();
+            if (!stream.good() || !std::isdigit(p))
+                break;
+            
+            string += get();
+        }
+        
+        return string;
     }
     
     Token Lexer::consumeIdentifier()

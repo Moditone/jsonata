@@ -15,7 +15,7 @@ endif(WIN32)
 
 if(APPLE)
 	# Add global definitions and include directories
-	add_definitions(-std=c++14 -Wall -Werror -Wconversion)
+	add_definitions(-std=c++17 -Wall -Werror -Wconversion)
 	include_directories(/usr/local/include)
 	install(FILES error.hpp json.hpp lexer.hpp parse.hpp parser.hpp token.hpp value.hpp writer.hpp DESTINATION include/moditone/jsonata)
 endif(APPLE)
