@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <istream>
+#include <stack>
 #include <string_view>
 
 #include "token.hpp"
@@ -36,8 +37,16 @@ namespace json
         [[nodiscard]] std::string consumeUtf32CodePoint();
         
         [[nodiscard]] char peek();
+        [[nodiscard]] char peek(std::size_t offset);
+        
         [[nodiscard]] char get();
+        [[nodiscard]] char getWithoutPositionChange();
+        
         void ignore();
+        void ignoreLine();
+        void ignoreBlockComment();
+        
+        void rollBack(char c);
         
         [[nodiscard]] Token createToken(Token::Type type, std::string_view lexeme) const;
         [[nodiscard]] Token createToken(Token::Type type, char c) const;
@@ -47,5 +56,7 @@ namespace json
         
         std::size_t line = 0;
         std::size_t character = 0;
+        
+        std::stack<char> rollBackStack;
     };
 }

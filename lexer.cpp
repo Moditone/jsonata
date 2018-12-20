@@ -9,6 +9,7 @@
 #include <codecvt>
 #include <cstdint>
 #include <locale>
+#include <vector>
 
 #include "lexer.hpp"
 
@@ -53,13 +54,26 @@ namespace json
     {
         consumeWhitespace();
         
-        if (peek() == '#')
+        if (!acceptComments)
+            return;
+        
+        switch (peek())
         {
-            ignore();
-            while (get() != '\n')
-                ignore();
-            
-            consumeWhitespaceAndComments();
+            case '#':
+                ignoreLine();
+                return consumeWhitespaceAndComments();
+            case '/':
+                switch (peek(1))
+                {
+                    case '/':
+                        ignoreLine();
+                        consumeWhitespaceAndComments();
+                        return;
+                    case '*':
+                        ignoreBlockComment();
+                        consumeWhitespaceAndComments();
+                        return;
+                }
         }
     }
     
@@ -205,12 +219,29 @@ namespace json
     
     char Lexer::peek()
     {
-        return static_cast<char>(stream.peek());
+        if (!rollBackStack.empty())
+            return rollBackStack.top();
+        else
+            return static_cast<char>(stream.peek());
+    }
+    
+    char Lexer::peek(std::size_t offset)
+    {
+        std::vector<char> history(offset);
+        for (auto& c : history)
+            c = getWithoutPositionChange();
+        
+        auto p = peek();
+        
+        for (auto it = history.rbegin(); it != history.rend(); it++)
+            rollBack(*it);
+        
+        return p;
     }
     
     char Lexer::get()
     {
-        auto c = static_cast<char>(stream.get());
+        const auto c = getWithoutPositionChange();
         
         if (c == '\n')
         {
@@ -223,11 +254,47 @@ namespace json
         return c;
     }
     
+    char Lexer::getWithoutPositionChange()
+    {
+        if (rollBackStack.empty())
+        {
+            return static_cast<char>(stream.get());
+        }
+        else
+        {
+            const auto c = rollBackStack.top();
+            rollBackStack.pop();
+            return c;
+        }
+    }
+    
     void Lexer::ignore()
     {
         // Call get, because we don't actually want to ignore but
         // increment the line or character in case of certain values
         [[maybe_unused]] const auto c = get();
+    }
+    
+    void Lexer::ignoreLine()
+    {
+        while (get() != '\n') { }
+    }
+    
+    void Lexer::ignoreBlockComment()
+    {
+        while (true)
+        {
+            if (get() == '*' && peek() == '/')
+            {
+                ignore();
+                return;
+            }
+        }
+    }
+    
+    void Lexer::rollBack(char c)
+    {
+        rollBackStack.push(c);
     }
     
     Token Lexer::createToken(Token::Type type, std::string_view lexeme) const
