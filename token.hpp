@@ -30,7 +30,7 @@ namespace json
             NIL,
             END_OF_FILE,
             UNKNOWN
-        } type = Type::END_OF_FILE;
+        };
         
     public:
         Token() : type(Type::END_OF_FILE) { }
@@ -45,7 +45,9 @@ namespace json
         }
         
     public:
+        Type type = Type::UNKNOWN;
         std::string lexeme;
+        
         std::size_t line = 0;
         std::size_t character = 0;
     };
