@@ -11,7 +11,7 @@
 
 namespace json
 {
-    struct Token
+    class Token
     {
     public:
         enum class Type

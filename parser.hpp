@@ -13,6 +13,9 @@
 
 namespace json
 {
+    class Lexer;
+    class Token;
+    
     class Parser
     {
     public:
