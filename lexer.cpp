@@ -24,34 +24,34 @@ namespace json
     
     Token Lexer::getNextToken()
     {
-        while (std::istream::traits_type::not_eof(peek()))
+        consumeWhitespaceAndComments();
+        
+        if (stream.eof())
+            return createToken(Token::Type::END_OF_FILE, "");
+        else if (!stream.good())
+            return createToken(Token::Type::UNKNOWN, "");
+        
+        const auto c = peek();
+        if (stream.eof())
+            return createToken(Token::Type::END_OF_FILE, "");
+        
+        switch (c)
         {
-            consumeWhitespaceAndComments();
-            
-            const auto c = peek();
-            if (stream.eof())
-                return createToken(Token::Type::END_OF_FILE, "");
-            
-            switch (c)
-            {
-                case '{': return createToken(Token::Type::LEFT_ACCOLADE, get());
-                case '}': return createToken(Token::Type::RIGHT_ACCOLADE, get());
-                case '[': return createToken(Token::Type::LEFT_SQUARE_BRACKET, get());
-                case ']': return createToken(Token::Type::RIGHT_SQUARE_BRACKET, get());
-                case ':': return createToken(Token::Type::COLON, get());
-                case ',': return createToken(Token::Type::COMMA, get());
-                case '\"': return consumeString();
-                case '-': return consumeNumber();
-                default: break;
-            }
-            
-            if (std::isdigit(c))
-                return consumeNumber();
-            else
-                return consumeIdentifier();
+            case '{': return createToken(Token::Type::LEFT_ACCOLADE, get());
+            case '}': return createToken(Token::Type::RIGHT_ACCOLADE, get());
+            case '[': return createToken(Token::Type::LEFT_SQUARE_BRACKET, get());
+            case ']': return createToken(Token::Type::RIGHT_SQUARE_BRACKET, get());
+            case ':': return createToken(Token::Type::COLON, get());
+            case ',': return createToken(Token::Type::COMMA, get());
+            case '\"': return consumeString();
+            case '-': return consumeNumber();
+            default: break;
         }
         
-        return createToken(Token::Type::UNKNOWN, "");
+        if (std::isdigit(c))
+            return consumeNumber();
+        else
+            return consumeIdentifier();
     }
     
     void Lexer::consumeWhitespaceAndComments()
@@ -232,7 +232,7 @@ namespace json
     
     char Lexer::peek(std::size_t offset)
     {
-        std::vector<char> history(offset);
+        std::vector<char> history(offset, 0);
         for (auto& c : history)
             c = getWithoutPositionChange();
         
