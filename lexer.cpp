@@ -51,8 +51,23 @@ namespace json
     
     void Lexer::consumeWhitespace()
     {
-        while (std::istream::traits_type::not_eof(stream.peek()) && std::isspace(stream.peek()))
+        while (true)
         {
+            const auto p = stream.peek();
+            if (stream.eof())
+                break;
+            
+            if (!std::isspace(p))
+                break;
+            
+            if (p == '\n')
+            {
+                line += 1;
+                character = 1;
+            } else {
+                character += 1;
+            }
+            
             stream.ignore();
         }
     }
@@ -102,7 +117,7 @@ namespace json
         while (true)
         {
             const auto peek = stream.peek();
-            if (std::istream::traits_type::not_eof(peek) || !std::isalpha(static_cast<char>(peek)))
+            if (!std::istream::traits_type::not_eof(peek) || !std::isalpha(static_cast<char>(peek)))
                 break;
             
             lexeme += static_cast<char>(stream.get());

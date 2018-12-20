@@ -17,11 +17,11 @@ if(APPLE)
 	# Add global definitions and include directories
 	add_definitions(-std=c++14 -Wall -Werror -Wconversion)
 	include_directories(/usr/local/include)
-	install(FILES error.hpp json.hpp lexer.hpp parse.hpp token.hpp value.hpp writer.hpp DESTINATION include/moditone/jsonata)
+	install(FILES error.hpp json.hpp lexer.hpp parse.hpp parser.hpp token.hpp value.hpp writer.hpp DESTINATION include/moditone/jsonata)
 endif(APPLE)
 
 # Create the target
-add_library(Jsonata accessor.cpp iterator.cpp error.hpp error.cpp json.hpp lexer.hpp lexer.cpp parse.hpp parse.cpp token.hpp value.hpp value.cpp writer.hpp writer.cpp)
+add_library(Jsonata accessor.cpp iterator.cpp error.hpp error.cpp json.hpp lexer.hpp lexer.cpp parse.hpp parse.cpp parser.hpp parser.cpp token.hpp value.hpp value.cpp writer.hpp writer.cpp)
 set_target_properties(Jsonata PROPERTIES DEBUG_POSTFIX -d)
 
 install(TARGETS Jsonata DESTINATION lib)

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <istream>
 #include <string_view>
 
@@ -30,5 +32,8 @@ namespace json
         
     private:
         std::istream& stream;
+        
+        std::size_t line = 1;
+        std::size_t character = 1;
     };
 }
