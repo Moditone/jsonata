@@ -28,6 +28,9 @@ namespace json
             consumeWhitespaceAndComments();
             
             const auto c = peek();
+            if (stream.eof())
+                return createToken(Token::Type::END_OF_FILE, "");
+            
             switch (c)
             {
                 case '{': return createToken(Token::Type::LEFT_ACCOLADE, get());
@@ -47,7 +50,7 @@ namespace json
                 return consumeIdentifier();
         }
         
-        return createToken(Token::Type::END_OF_FILE, "");
+        return createToken(Token::Type::UNKNOWN, "");
     }
     
     void Lexer::consumeWhitespaceAndComments()
@@ -277,7 +280,11 @@ namespace json
     
     void Lexer::ignoreLine()
     {
-        while (get() != '\n') { }
+        while (get() != '\n')
+        {
+            if (!stream.good())
+                return;
+        }
     }
     
     void Lexer::ignoreBlockComment()
@@ -289,6 +296,9 @@ namespace json
                 ignore();
                 return;
             }
+            
+            if (!stream.good())
+                return;
         }
     }
     
