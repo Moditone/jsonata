@@ -10,7 +10,7 @@ project(Jsonata)
 
 if(WIN32)
 	add_definitions(/std:c++latest /Wall /WX-)
-	install(FILES error.hpp json.hpp parse.hpp value.hpp writer.hpp DESTINATION moditone/jsonata)
+	install(FILES error.hpp json.hpp lexer.hpp parse.hpp parser.hpp token.hpp value.hpp writer.hpp DESTINATION moditone/jsonata)
 endif(WIN32)
 
 if(APPLE)

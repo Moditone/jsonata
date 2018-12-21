@@ -48,7 +48,7 @@ namespace json
             default: break;
         }
         
-        if (std::isdigit(c))
+        if (::isdigit(c))
             return consumeNumber();
         else
             return consumeIdentifier();
@@ -85,7 +85,7 @@ namespace json
     {
         while (true)
         {
-            if (const auto p = peek(); stream.eof() || !std::isspace(p))
+            if (const auto p = peek(); stream.eof() || !::isspace(p))
                 break;
             
             ignore();
@@ -127,7 +127,7 @@ namespace json
         
         while (true)
         {
-            if (const auto p = peek(); !stream.good() || !std::isdigit(p))
+            if (const auto p = peek(); !stream.good() || !::isdigit(p))
                 break;
             
             string += get();
@@ -141,7 +141,7 @@ namespace json
         std::string lexeme;
         while (true)
         {
-            if (const auto p = peek(); !stream.good() || !std::isalpha(p))
+            if (const auto p = peek(); !stream.good() || !::isalpha(p))
                 break;
             
             lexeme += get();
