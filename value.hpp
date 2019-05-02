@@ -9,11 +9,12 @@
 #ifndef JSON_VALUE_HPP
 #define JSON_VALUE_HPP
 
-#include <boost/variant.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace json
@@ -21,6 +22,9 @@ namespace json
 	//! A json value
 	class Value
 	{
+        friend bool operator==(const Value& lhs, const Value& rhs);
+        friend bool operator!=(const Value& lhs, const Value& rhs);
+        
     public:
         //! Generic null value type
         enum class Null;
@@ -40,7 +44,13 @@ namespace json
         {
         public:
             //! Construct the accessor from an iterator
-            Accessor(const Iterator& iterator);
+            Accessor(Array::iterator iterator);
+            
+            //! Construct the accessor from an iterator
+            Accessor(Object::iterator iterator);
+            
+            //! Destruct the accessor
+            ~Accessor();
             
             //! Return the key of an object key/value pair
             /*! @throw std::runtime_error if the accessor does not point to an object element */
@@ -59,9 +69,17 @@ namespace json
                 In other words it->value() = (it.operator->())->value() */
             const Accessor* operator->() const { return this; }
             
+            //! Does this accessor point to an array or object?
+            bool pointsToArray() const { return toArray; }
+            
         private:
-            //! The iterator pointing to the element data
-            boost::variant<boost::recursive_wrapper<Array::iterator>, boost::recursive_wrapper<Object::iterator>> iterator;
+            bool toArray = false;
+            
+            union
+            {
+                Array::iterator itArray;
+                Object::iterator itObject;
+            };
         };
         
         //! Represents an element in a Json array or object
@@ -70,7 +88,13 @@ namespace json
         {
         public:
             //! Construct the accessor from an iterator
-            ConstAccessor(const ConstIterator& iterator);
+            ConstAccessor(Array::const_iterator iterator);
+            
+            //! Construct the accessor from an iterator
+            ConstAccessor(Object::const_iterator iterator);
+            
+            //! Destruct the accessor
+            ~ConstAccessor();
             
             //! Return the key of an object key/value pair
             /*! @throw std::runtime_error if the accessor does not point to an object element */
@@ -89,20 +113,34 @@ namespace json
              In other words it->value() = (it.operator->())->value() */
             const ConstAccessor* operator->() const { return this; }
             
+            //! Does this accessor point to an array or object?
+            bool pointsToArray() const { return toArray; }
+            
         private:
-            //! The iterator pointing to the element data
-            boost::variant<boost::recursive_wrapper<Array::const_iterator>, boost::recursive_wrapper<Object::const_iterator>> iterator;
+            bool toArray = false;
+            
+            union
+            {
+                Array::const_iterator itArray;
+                Object::const_iterator itObject;
+            };
         };
         
         //! Iterator over a Json value
         class Iterator
         {
+            friend bool operator==(const Iterator& lhs, const Iterator& rhs);
+            friend bool operator!=(const Iterator& lhs, const Iterator& rhs);
+            
         public:
             //! Construct the iterator from an array iterator
             Iterator(Array::iterator iterator);
             
             //! Construct the iterator from an object iterator
             Iterator(Object::iterator iterator);
+            
+            //! Destruct the iterator
+            ~Iterator();
             
             //! Increment the iterator
             Iterator& operator++();
@@ -116,23 +154,34 @@ namespace json
             //! Dereference the iterator
             Accessor operator->();
             
-            //! Return the iterator as a variant
-            const auto& asVariant() const { return iterator; }
+            //! Does this accessor point to an array or object?
+            bool pointsToArray() const { return toArray; }
             
         private:
-            //! Variant containing the actual iterator
-            boost::variant<boost::recursive_wrapper<Array::iterator>, boost::recursive_wrapper<Object::iterator>> iterator;
+            bool toArray = false;
+            
+            union
+            {
+                Array::iterator itArray;
+                Object::iterator itObject;
+            };
         };
         
         //! Iterator over a Json value
         class ConstIterator
         {
+            friend bool operator==(const ConstIterator& lhs, const ConstIterator& rhs);
+            friend bool operator!=(const ConstIterator& lhs, const ConstIterator& rhs);
+            
         public:
             //! Construct the iterator from an array iterator
             ConstIterator(Array::const_iterator iterator);
             
             //! Construct the iterator from an object iterator
             ConstIterator(Object::const_iterator iterator);
+            
+            //! Destruct the iterator
+            ~ConstIterator();
             
             //! Increment the iterator
             ConstIterator& operator++();
@@ -146,12 +195,17 @@ namespace json
             //! Dereference the iterator
             ConstAccessor operator->();
             
-            //! Return the iterator as a variant
-            const auto& asVariant() const { return iterator; }
+            //! Does this accessor point to an array or object?
+            bool pointsToArray() const { return toArray; }
             
         private:
-            //! Variant containing the actual iterator
-            boost::variant<boost::recursive_wrapper<Array::const_iterator>, boost::recursive_wrapper<Object::const_iterator>> iterator;
+            bool toArray = false;
+            
+            union
+            {
+                Array::const_iterator itArray;
+                Object::const_iterator itObject;
+            };
         };
         
 	public:
@@ -159,7 +213,8 @@ namespace json
 	// Construction
 
 		// Note: a lot of these can be templated away with c++17's constructor template parameter inference
-        Value(Null = {}); //!< Construct with a null value (default construction)
+        Value();
+        Value(Null); //!< Construct with a null value (default construction)
 		Value(bool boolean); //!< Construct with a boolean value
         Value(short int number); //!< Construct with a number value
 		Value(unsigned short int number); //!< Construct with a number value
@@ -171,26 +226,28 @@ namespace json
 		Value(long long unsigned int number); //!< Construct with a number value
 		Value(double number); //!< Construct with a number value
 		Value(long double number); //!< Construct with a number value
-		Value(const std::string& string); //!< Construct a string value
+        Value(const std::string& string); //!< Construct a string value
+		Value(std::string_view string); //!< Construct a string value
 		Value(const Array& array); //!< Construct an array value
 		Value(const Object& object); //!< Construct an object value
 
 		//! Construct a string value
 		/*! @throw std::invalid_argument if the string is a nullptr */
 		Value(const char* string);
+        
+        //! Copy and move
+        Value(const Value& rhs);
+        Value(Value&& rhs);
+        
+        ~Value();
 
 	// Assignment
 
 		//! Assign a null value
 		Value& operator=(Null);
-
-		//! Assign a new boolean value
-		template <class T>
-		std::enable_if_t<std::is_same<T, bool>::value, Value&> operator=(T boolean)
-		{
-			data = boolean;
-			return *this;
-		}
+        
+        //! Assign a boolean value
+        Value& operator=(bool boolean);
 
 		//! Assign a new number value
 		template <class T>
@@ -199,8 +256,10 @@ namespace json
                         !std::is_same<T, bool>::value, Value&>
         operator=(T number)
 		{
-			data = static_cast<int64_t>(number);
-			return *this;
+            destruct();
+            type = Type::SIGNED;
+            this->signedInt = static_cast<int64_t>(number);
+            return *this;
 		}
         
         //! Assign a new number value
@@ -210,7 +269,9 @@ namespace json
                         !std::is_same<T, bool>::value, Value&>
         operator=(T number)
         {
-            data = static_cast<uint64_t>(number);
+            destruct();
+            type = Type::UNSIGNED;
+            this->unsignedInt = static_cast<uint64_t>(number);
             return *this;
         }
         
@@ -219,7 +280,9 @@ namespace json
         std::enable_if_t<std::is_floating_point<T>::value, Value&>
         operator=(T number)
         {
-            data = static_cast<long double>(number);
+            destruct();
+            type = Type::REAL;
+            this->real = static_cast<long double>(number);
             return *this;
         }
 
@@ -229,12 +292,19 @@ namespace json
 
 		//! Assign a new string value
 		Value& operator=(const std::string& string);
+        
+        //! Assign a new string value
+        Value& operator=(std::string_view string);
 
 		//! Assign a new array value
 		Value& operator=(const Array& array);
 
 		//! Assign a new object value
 		Value& operator=(const Object& object);
+        
+        // Copy and move
+        Value& operator=(const Value& rhs);
+        Value& operator=(Value&& rhs);
 
 	// Predicates
 
@@ -279,9 +349,6 @@ namespace json
         /*! @throw std::runtime_error if the value is not an object */
         const Object& asObject() const;
 
-		//! Represent the Json value as a variant
-		const auto& asVariant() const { return data; }
-
 		//! Append a value, if this is an array
         /*! Changes the value into an array if it wasn't */
         void append(const Value& value);
@@ -297,13 +364,16 @@ namespace json
         //! Access an element of the value as object, or return an alternative if the index wasn't found
         Value access(const std::size_t& index, const Value& alternative) const;
         
+        //! Sets one of the elements as object
+        void insert(std::string_view key, const Value& value);
+        
         //! Access an element of the value as object
         /*! Changes the value into an object if it wasn't */
-        Value& operator[](const std::string& key);
+        Value& operator[](std::string_view key);
         
         //! Access an element of the value as object, read-only
         /*! @throw std::runtime_error if the value is not an object */
-        const Value& operator[](const std::string& key) const;
+        const Value& operator[](std::string_view key) const;
         
         //! Access an element of the value as object, or return an alternative if the key wasn't found
         Value access(const std::string& key, const Value& alternative) const;
@@ -343,10 +413,29 @@ namespace json
         
         //! Generic empty object
         static const Value emptyObject;
+        
+    private:
+        // Can't use NULL, because of #define NULL 0
+        enum class Type { NIL, BOOLEAN, SIGNED, UNSIGNED, REAL, STRING, ARRAY, OBJECT };
+        
+    private:
+        //! Destruct the data in the union
+        void destruct();
 
 	private:
-		//! Contains the actual data for this Json value
-        boost::variant<Null, bool, int64_t, uint64_t, long double, std::string, boost::recursive_wrapper<Array>, boost::recursive_wrapper<Object>> data;
+        //! The type that describes the current content
+        Type type = Type::NIL;
+        
+        union
+        {
+            bool boolean;
+            int64_t signedInt;
+            uint64_t unsignedInt;
+            long double real;
+            std::string string;
+            std::unique_ptr<Array> array;
+            std::unique_ptr<Object> object;
+        };
 	};
 
 	//! Compare two values for equality

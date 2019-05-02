@@ -9,6 +9,7 @@
 #ifndef JSON_WRITER_HPP
 #define JSON_WRITER_HPP
 
+#include <limits>
 #include <ostream>
 #include <string>
 
@@ -37,10 +38,10 @@ namespace json
     public:
         //! Write a Json value to stream, lean and efficient
         void writeToStream(std::ostream& stream, const Value& value) const override;
-        
-    protected:
-        //! Write a Json string to stream
-        void write(std::ostream& stream, const std::string& string) const;
+
+    public:
+        //! The precision for writing real numbers
+        std::size_t realPrecision = std::numeric_limits<double>::max_digits10;
     };
     
     //! Default pretty formatting settings that come with libjsonata
